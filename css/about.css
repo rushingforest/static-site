@@ -23,9 +23,9 @@ html {
 
 body {
     padding-top: 50px;
-    min-height: 100%;
+    min-height: 50%;
     margin: 0;
-    background-image: url("../photos/bridge.jpg");
+    background-image: url("../photos/windmill.jpg");
     height: 500px; /* You must set a specified height */
     background-position: center; /* Center the image */
     background-repeat: repeat; /* Do not repeat the image */
