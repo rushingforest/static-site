@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | probabilistic modeling | opencyan</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/prob.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" type="text/javascript"></script>
+	<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+	<script>
+      mermaid.initialize({ startOnLoad: true });
+  </script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="./index.html">up</a></li>
+              <li><a href="../econ/index.html">geoeconomics</a></li>
+              <li><a href="./index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+    
+<div class="container-fluid" id="prob-home">
+    <h1>strong open universe probabilistic programming with no dynamic allocation</h1>
+
+<p>Probabilistic programming uses tools of programming languages to encode expressive probabilistic models of data generating processes and to perform statistical inference – inferring latent or unobserved quantities – using those models. Many models of behavior encode an <em>a priori</em> unbounded number of latent random variables. Such models are known as <em>open universe</em> models. For example, in a measurement and signature intelligence (MASINT) application, a generative model might encode the possibility of observing arbitrarily many emitters of radiation; corresponding inference problems might be to infer, based on observed evidence, how many emitters of radiation were observed, how strong the 85th percentile radiation emitter was, or the most likely direction from which the emitters originated.</p>
+<p>Performing statistical inference over open-universe models is a challenging task. The task is made harder in an environment that imposes severe constraints on available computation. Today, a distributed network of low-powered sensor nodes today is rarely, if ever, equipped with technology that enables statistical inference on the sensors themselves – let alone technology that enables reasoning over models containing arbitrarily many emitters of radiation! One reason is that such sensors are often built using very small microcontrollers that operate without many of the creature comforts of modern computing environments, such as an operating system and heap memory. Enabling complex statistical inference on such sensors could transform intelligence collection, predictive maintenance, and other fields of vital importance to defense, intelligence, and commercial operations of many types (e.g., oil and gas) in austere environments.</p>
+<p>In this short document I discuss a few related topics that point the way toward realizing this goal:</p>
+<ol type="1">
+<li>I describe a typology of probabilistic programs with a focus on segmenting open-universe programs into further categories that facilitate analysis.</li>
+<li>I enumerate theoretical reasons why we should expect, perhaps counterintuitively, that reasoning over open-universe programs is possible using only static and automatic memory allocation.</li>
+<li>I highlight some features of a proof of concept of open-universe probabilistic programming with only static and automatic memory allocation, written in pretty-modern C++.</li>
+</ol>
+<h2 id="a-typology">A typology</h2>
+<p>We can (almost!) segment probabilistic programs as follows:</p>
+<ul>
+<li>Closed universe (CU)
+<ul>
+<li>The number of addresses in the probabilistic program has a finite upper bound known at compile time. You will note that this definition includes all bounded stochastic control flow programs.</li>
+</ul></li>
+<li>Weak open universe (WOU)
+<ul>
+<li>There is no compile-time upper bound on the number of addresses in the program.</li>
+<li>There is a set of addresses <span class="math inline"><em>A</em><sub><em>s</em></sub></span>, known at compile time, that are guaranteed to be sampled during any execution of the program</li>
+<li>Once the random variable at each address in <span class="math inline"><em>A</em><sub><em>s</em></sub></span> is sampled, the cardinality of the collection of the remaining addresses in the probabilistic program has a finite upper bound.</li>
+</ul></li>
+<li>Strong open universe (SOU)
+<ul>
+<li>There is no compile-time upper bound on the number of addresses in the program.</li>
+<li>For any integer <span class="math inline"><em>n</em> &gt; 0</span>, for any set of addresses <span class="math inline"><em>A</em><sub><em>s</em></sub></span> of cardinality <span class="math inline"><em>n</em></span> that has been sampled, the cardinality of the collection of the remaining addresses in the probabilistic program does not have an upper bound.</li>
+</ul></li>
+</ul>
+<p>Examples of each of these types of programs are easy to create. In what follows, we display example probabilistic programs written in <a href="https://davidrushingdewhurst.com/prob/lppl/index.html"><code>fmcs</code></a>. A simple example of a CU program is a normal model:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="dt">double</span> norm(<span class="dt">record_t</span>&lt;DTypes&lt;Normal, Gamma&gt;&gt;&amp; r, <span class="dt">double</span> obs) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>    <span class="kw">auto</span> loc = sample(r, <span class="st">&quot;loc&quot;</span>, Normal(<span class="dv">0</span>, <span class="dv">5</span>), rng);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    <span class="kw">auto</span> scale = sample(r, <span class="st">&quot;scale&quot;</span>, Gamma(<span class="dv">2</span>, <span class="dv">2</span>), rng);</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="cf">return</span> observe(r, <span class="st">&quot;value&quot;</span>, Normal(loc, scale), obs);</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>A path of random length is a simple example of a WOU program:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="dt">unsigned</span> path(<span class="dt">record_t</span>&lt;DTypes&lt;Poisson, Normal&gt;&gt;&amp; r, <span class="dt">unsigned</span> mean) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>    <span class="kw">auto</span> num = sample(r, <span class="st">&quot;num&quot;</span>, Poisson(mean), rng);</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>    <span class="dt">double</span> loc = <span class="fl">0.0</span>, scale = <span class="fl">1.0</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="kw">auto</span> t = <span class="dv">0</span>; t != num; ++t) {</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true"></a>        <span class="kw">auto</span> m = sample(r, <span class="st">&quot;pl/&quot;</span> + <span class="bu">std::</span>to_string(t), Normal(m, s), rng);</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true"></a>    }</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true"></a>    <span class="cf">return</span> num;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>A very simple – and instructive – SOU program is the generative form of a Geometric distribution:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="dt">unsigned</span> geom(<span class="dt">record_t</span>&lt;DTypes&lt;Categorical&gt;&gt;&amp; r, <span class="dt">double</span> p) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    <span class="dt">unsigned</span> n = <span class="dv">0</span>, s = <span class="dv">0</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>    <span class="cf">while</span> (s &lt; <span class="dv">1</span>) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>        s = sample(r, <span class="st">&quot;choice/&quot;</span> + <span class="bu">std::</span>to_string(n), Categorical({p, <span class="fl">1.0</span> - p}), rng);</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        ++n;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>    }</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>    <span class="cf">return</span> n;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>}</span></code></pre></div>
+<p>CU, WOU, and SOU programs do not cover the space of probabilistic programs. For example, imagine a program that chooses to execute <code>geom</code> with probability <span class="math inline"><em>q</em></span> or to execute <code>path</code> with probability <span class="math inline">1 − <em>q</em></span>. We say that a program has the <span class="math inline"><em>q</em></span>-strong open universe property if, at compile time, a subprogram of the program has probability <span class="math inline">1 − <em>q</em></span> of not exhibiting the SOU property.</p>
+<p>How likely is it for a SOU program to terminate? Obviously this question is unanswerable for any arbitrary program; however, there are simple probabilistic arguments that are applicable to many examples. Suppose that each address in a SOU program has <span class="math inline"><em>p</em></span> as a constant lower bound to the probability of the value of the random variable sampled at that address terminating the program. The probability that the program terminates after values have been sampled at <span class="math inline"><em>n</em></span> addresses is then bounded below by <span class="math inline">1 − (1 − <em>p</em>)<sup><em>n</em></sup></span>, approaching 1 at an exponential rate as <span class="math inline"><em>n</em></span> becomes large. Indeed, for there to be a constant probability of non-termination at any <span class="math inline"><em>n</em></span> requires a extremely steep tail-off in the probability of termination at the <span class="math inline"><em>n</em></span>-th sampled address. Extending the argument just used and supposing that <span class="math inline"><em>Q</em> ∈ (0, 1)</span> is the limiting probability of termination of the SOU program, a similar argument gives the limiting probability of termination as
+<br /><span class="math inline">\[Q = 1 - \prod_{k=1}^\infty (1-p(k)),\]</span><br/>
+by which we mean
+<br /><span class="math inline">\[
+\sum_{k=1}^\infty \log (1 - p(k)) = \log(1-Q),
+\]</span><br />
+where we are making the assumption that the infinite series converges (i.e., that <span class="math inline"><em>p</em>(<em>k</em>) &lt; 1</span> for all <span class="math inline"><em>k</em></span>).
+Taylor expanding the left-hand side and matching terms, we find that 
+<br />
+<span class="math inline">
+\[
+p(k) = 1-\exp(-Q^k/k),
+\]
+</span>
+<br />
+which should be true in the limit (though, of course, this scaling behavior may be violated for any <span class="math inline"><em>k</em></span> less than some fixed constant).</p>
+<h2 id="querying-sou-programs-on-the-stack">Querying SOU programs on the stack</h2>
+<p>From the analysis just presented we can guess that most <span class="math inline"><em>q</em></span>-SOU and even SOU programs that we are likely to write are extraordinarily likely to terminate rapidly. From a practical perspective, this means that we may not need to resort to effectively unbounded heap memory in order to sample from – and thus perform inference over – such programs. A practical implementation will require our solving a few related problems, all of which boil down to a fundamental question: <strong>how can we maintain a finite-size representation of a program state that could grow without bound</strong>?</p>
+<ul>
+<li>How should the addresses in such a program be represented? Very often we use semantic addresses that reflect the structure of the program as it’s created; such addresses often use heap-based constructs (e.g., strings as in pyro’s <a href="https://docs.pyro.ai/en/stable/contrib.autoname.html">autoname</a>).</li>
+<li>How should inference be performed? It should be clear that algorithms that require full knowledge/memory of program structure (e.g., Metropolis Hastings, stochastic variational inference) will be difficult, if not impossible, to implement with the restriction to only automatic and static allocation.</li>
+</ul>
+<p>We outline a methodology for performing inference over and querying SOU programs using only automatic and static allocation. This is feasible – even without arena-based coroutines – while imposing a mild constraint on the form of the query. The methodology is based on further decomposing the inference process into three parts:</p>
+<ol type="1">
+<li>Collection: deciding if a value should be retained after the execution of the program</li>
+<li>Sampling: actually running the program</li>
+<li>Querying: creating a view of the posterior using collected values</li>
+</ol>
+<p>This decomposition extends the <a href="https://davidrushingdewhurst.com/prob/lppl/lppl-deep-dive.html#:~:text=Streaming%2Dfirst,a%20database%20query.">two-part decomposition</a> introduced in fmcs. The process for drawing one sample of the view of the posterior of the program is displayed in the diagram below.</p>
+<div class="mermaid">
+  flowchart
+      A[Sample] --> |Executing program| B[Collect?]
+      B --> A
+      B --> |After one program execution| C[Update view]
+</div>
+<p>There are two restrictions placed on this process to guarantee operation using stack memory only:</p>
+<ol type="1">
+<li>The size of the object doing the collection (the “collector”) must be known at compile-time.</li>
+<li>The view must be able to be computed using an online / one-pass streaming algorithm. Additionally, for guaranteed execution using stack memory only, the algorithm should take <span class="math inline">𝒪(1)</span> memory in the size of the collector, though in practice it is likely that logarithmic memory growth would be fine.</li>
+</ol>
+<p>In other words, the space of posterior queries is limited to those that can be computed using a sequence of query graphs <span class="math inline">{<em>G</em><sub><em>n</em></sub>}<sub>1 ≤ <em>n</em> ≤ <em>N</em></sub></span> with <span class="math inline">max<sub><em>n</em></sub>|<em>G</em><sub><em>n</em></sub>|</span> bounded above at compile time, and with the following constraint. Suppose there is a mapping <span class="math inline"><em>f</em></span> such that <span class="math inline"><em>V</em><sub><em>N</em></sub> = <em>f</em>({<em>G</em><sub><em>n</em></sub>}<sub>1 ≤ <em>n</em> ≤ <em>N</em></sub>)</span> for any <span class="math inline"><em>N</em></span> , where <span class="math inline"><em>V</em></span> is the desired view of the posterior and <span class="math inline"><em>V</em><sub><em>N</em></sub></span> is the <span class="math inline"><em>N</em></span>-th empirical estimate of it. Then there must exist mappings <span class="math inline"><em>g</em></span> and <span class="math inline"><em>h</em></span> such that <span class="math inline"><em>V</em><sub><em>n</em></sub> = <em>h</em>(<em>U</em><sub><em>n</em></sub>)</span>, where <span class="math inline"><em>U</em><sub><em>n</em></sub> = <em>g</em>(<em>U</em><sub><em>n</em> − 1</sub>, <em>G</em><sub><em>n</em></sub>)</span> and with <span class="math inline">max<sub><em>n</em></sub>|<em>U</em><sub><em>n</em></sub>|</span> bounded above at compile time.</p>
+<h2 id="opencyan"><code>opencyan</code></h2>
+<p>To demonstrate that performing inference over SOU programs using only static and automatic allocation is feasible, we implemented <a href="https://gitlab.com/drdewhurst/ccyan">opencyan</a>, a proof-of-concept probabilistic programming language. While definitely not intended for production use, it’s fully functional and concise (299 lines of C++17 code). interested readers can view the entire library and integration tests at the link in the previous sentence. We overview several key features of the library here.</p>
+<p>The implementation of collection and view updating simultaneously addresses the finite-size query representation and address size restriction. Collector structs are parameterized over the address type – delegating to the user the responsibility of ensuring that addresses do not dynamically allocate – and over implementations of the collection strategy. Collector structs, by themselves, default to only enabling storage of the log probabilities of the latent random variables <span class="math inline">log <em>p</em>(<em>z</em>)</span> and of the observed random variables <span class="math inline">log <em>p</em>(<em>x</em>|<em>z</em>)</span>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> Impl, <span class="kw">typename</span> Address&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="kw">struct</span> Collector {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    Impl&lt;Address&gt; impl;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    <span class="dt">double</span> log_latent;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>    <span class="dt">double</span> log_likelihood;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    Collector(Impl&lt;Address&gt; impl) : impl(impl), log_latent(<span class="fl">0.0</span>), log_likelihood(<span class="fl">0.0</span>) {}</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>    </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    <span class="dt">void</span> <span class="kw">operator</span>()(<span class="bu">std::</span>optional&lt;Address&gt; a, Value v, Dist d) {</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>        impl(a, v, d);</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>    }  </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>    </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>    <span class="dt">void</span> clear() {</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>        log_latent = <span class="fl">0.0</span>;</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>        log_likelihood = <span class="fl">0.0</span>;</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>        impl.clear();</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>    }</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>};</span></code></pre></div>
+<p>What is probably the simplest <code>Impl</code> of a <code>Collector</code> simply records the value at a single address:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">typename</span> Address&gt;</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="kw">struct</span> GrabOne {</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>    Address addr;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    MaybeValue val;</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>    GrabOne(Address address) : addr(address), val(<span class="bu">std::</span>nullopt) {}</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a>    <span class="dt">void</span> <span class="kw">operator</span>()(<span class="bu">std::</span>optional&lt;Address&gt; a, Value v, Dist d) {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a>        <span class="cf">if</span> (a.has_value()) {</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a>            <span class="cf">if</span> (a.value() == addr) {</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a>                val = v;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>            }</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>        }</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a>    }</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true"></a>    <span class="dt">void</span> clear() {</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true"></a>        val = <span class="bu">std::</span>nullopt;</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true"></a>    }</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true"></a>};</span></code></pre></div>
+<p>At this point, you may be wondering why the <code>Impl</code> handles a <code>std::optional&lt;Address&gt;</code> rather than an <code>Address</code>. <code>opencyan</code> treats all but a finite number of random variables as <a href="https://www.gen.dev/docs/v0.3/ref/gfi/#:~:text=Generative%20functions%20may,a%20randomized%20algorithm.">untraced randomness</a>; when passing the result of a sampled random variable into an <code>Impl</code>, it may be that such randomness does not have an address. Concomitantly, there are two related sample methods – one for dealing with randomness that is addressable and one for dealing with randomness that is not addressable:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> Impl, <span class="kw">typename</span> Address&gt;</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>Value sample(Collector&lt;Impl, Address&gt;&amp; coll, Address a, Dist d, rngstate * rng, MaybeValue o = <span class="bu">std::</span>nullopt) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>    <span class="cf">if</span> (!o.has_value()) {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>        Value v = <span class="bu">std::</span>visit(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>            [&amp;rng](<span class="kw">auto</span> the_dist){ <span class="cf">return</span> Value(the_dist.sample(rng)); },</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>            d</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>        );</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>        coll.log_latent += <span class="bu">std::</span>visit(</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>            [&amp;v](<span class="kw">auto</span> the_dist){ <span class="cf">return</span> the_dist.logprob(v); },</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>            d</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a>        );</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a>        coll(a, v, d);</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a>        <span class="cf">return</span> v;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a>    } <span class="cf">else</span> {</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a>        coll.log_likelihood += <span class="bu">std::</span>visit(</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a>            [&amp;o](<span class="kw">auto</span> the_dist){ <span class="cf">return</span> the_dist.logprob(o.value()); },</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a>            d</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a>        );</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a>        coll(a, o.value(), d);</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a>        <span class="cf">return</span> o.value();</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>    }</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a>}</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> Impl, <span class="kw">typename</span> Address&gt;</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a>Value sample(Collector&lt;Impl, Address&gt;&amp; coll, Dist d, rngstate * rng) {</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a>    Value v = <span class="bu">std::</span>visit(</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a>        [&amp;rng](<span class="kw">auto</span> the_dist){ <span class="cf">return</span> Value(the_dist.sample(rng)); },</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true"></a>        d</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true"></a>    );</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true"></a>    coll.log_latent += <span class="bu">std::</span>visit(</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true"></a>        [&amp;v](<span class="kw">auto</span> the_dist){ <span class="cf">return</span> the_dist.logprob(v); },</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true"></a>        d</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true"></a>    );</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true"></a>    coll(<span class="bu">std::</span>nullopt, v, d);</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true"></a>    <span class="cf">return</span> v;</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This design is very similar to that of <code>fmcs</code>; compare the syntax of the first implementation of <code>sample</code> here with that of the <a href="https://gitlab.com/drdewhurst/fmcs/-/blob/master/lib/record.hpp?ref_type=heads#:~:text=*/-,template%3Ctypename%20D%2C%20typename%20RNG%2C%20typename...%20Ts%3E,%7D,-281">top-level definition of sampling</a> in <code>fmcs</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">typename</span> D, <span class="kw">typename</span> RNG, <span class="kw">typename</span>... Ts&gt;</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>DSType&lt;D&gt; sample(<span class="dt">record_t</span>&lt;DTypes&lt;Ts...&gt;&gt;&amp; r, <span class="bu">std::</span>string address, D dist, RNG&amp; rng) {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>    <span class="cf">if</span> (r.interp.empty()) <span class="cf">return</span> _sample_with_node_interp&lt;D, RNG, Ts...&gt;(r, address, dist, rng);  <span class="co">// \todo when is this empty?</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>    <span class="cf">return</span> <span class="bu">std::</span>visit(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>        overloaded(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>            [&amp;r, &amp;address, &amp;dist, &amp;rng](RecordStandard) {<span class="cf">return</span> _sample_with_node_interp&lt;D, RNG, Ts...&gt;(r, address, dist, rng); },</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>            [&amp;r, &amp;address, &amp;dist, &amp;rng](<span class="kw">auto</span>) {<span class="cf">return</span> _sample_with_record_interp&lt;D, RNG, Ts...&gt;(r, address, dist, rng); }</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>        ),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>        r.interp.front()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a>    );</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Constructing a view in <code>opencyan</code> is also similar in syntax and semantics to doing so in <code>fmcs</code>. An instance of a struct receives a collection of variables extracted from an instance of the program along with a possibly unnormalized posterior weight of the collection. After every sample from the program, it computes <span class="math inline"><em>U</em><sub><em>n</em></sub> = <em>g</em>(<em>U</em><sub><em>n</em> − 1</sub>, <em>G</em><sub><em>n</em></sub>)</span> then, when <code>.emit()</code> is called, it computes and returns <span class="math inline"><em>V</em><sub><em>n</em></sub> = <em>h</em>(<em>U</em><sub><em>n</em></sub>)</span>. A very simple example of this computes the online mean of a single address:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> CollImpl, <span class="kw">typename</span> Address, <span class="kw">typename</span>&gt; <span class="kw">struct</span> Mean;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> CollImpl, <span class="kw">typename</span> Address&gt;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a><span class="kw">struct</span> Mean&lt;CollImpl, Address, ViewParams&lt;&gt;&gt; {</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>    Address addr;</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>    <span class="dt">double</span> value;</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>    <span class="dt">double</span> weight;</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>    Mean(Address addr) : addr(addr), value(<span class="fl">0.0</span>), weight(<span class="fl">0.0</span>) {}</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>    <span class="dt">void</span> <span class="kw">operator</span>()(Collector&lt;CollImpl, Address&gt;&amp; c, <span class="dt">unsigned</span> n) {</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a>        <span class="cf">if</span> (addr == c.impl.addr) {</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true"></a>            <span class="cf">if</span> (c.impl.val.has_value()) {</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true"></a>                value += <span class="bu">std::</span>exp(c.log_likelihood) * <span class="bu">std::</span>get&lt;<span class="dt">double</span>&gt;(c.impl.val.value());</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true"></a>                weight += <span class="bu">std::</span>exp(c.log_likelihood);</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true"></a>            }</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true"></a>        }</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true"></a>    }</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true"></a>    <span class="dt">double</span> <span class="ex">emit</span>() {</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true"></a>        <span class="cf">return</span> value / weight;</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true"></a>    }</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true"></a>};</span></code></pre></div>
+<p>A slightly more complicated example creates an online histogram of maximum value of the addresses sampled from a SOU program:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">template</span>&lt;<span class="kw">typename</span>&gt; <span class="kw">class</span> CollImpl, <span class="kw">typename</span> AddressType, <span class="dt">unsigned</span> N&gt;</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="kw">struct</span> AddressHist&lt;CollImpl, AddressType, Dimension&lt;N&gt;&gt; {</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>    <span class="bu">std::</span>array&lt;AddressType, N&gt; bins;</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>    <span class="bu">std::</span>array&lt;<span class="dt">unsigned</span>, N&gt; values;</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>    AddressHist(<span class="bu">std::</span>array&lt;AddressType, N&gt; bins) : bins(bins) {</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a>        <span class="cf">for</span> (<span class="dt">unsigned</span> ix = <span class="dv">0</span>; ix != N; ++ix) values[ix] = <span class="dv">0</span>;</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a>    }</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>    <span class="dt">void</span> <span class="kw">operator</span>()(Collector&lt;CollImpl, AddressType&gt;&amp; c, <span class="dt">unsigned</span> n) {</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a>        AddressType left = bins[<span class="dv">0</span>];</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a>        AddressType right = bins[N - <span class="dv">1</span>];</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a>        AddressType mid;</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a>        AddressType val = c.impl.addr;</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a>        <span class="cf">while</span> (left &lt; right) {</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a>            mid = (left + right) / <span class="dv">2</span>;</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a>            <span class="cf">if</span> (bins[mid] &lt; val) {</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true"></a>                left += <span class="dv">1</span>;</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true"></a>            } <span class="cf">else</span> {</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true"></a>                right = mid;</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true"></a>            }</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true"></a>        }</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true"></a>        values[left] += <span class="dv">1</span>;</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true"></a>    }</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true"></a>    <span class="bu">std::</span>pair&lt;<span class="bu">std::</span>array&lt;AddressType, N&gt;, <span class="bu">std::</span>array&lt;<span class="dt">unsigned</span>, N&gt;&gt; <span class="ex">emit</span>() {</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true"></a>        <span class="cf">return</span> <span class="bu">std::</span>pair(bins, values);</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true"></a>    }</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true"></a>};</span></code></pre></div>
+<p>For more details on how all these pieces work together, as well as the definition of the (very simple) inference method, you should look at the source code.</p>
+<h2 id="shortcomings">Shortcomings</h2>
+<p>There are numerous shortcomings of the library. Aside from the fact that it’s in no way a robust, production-ready implementation (e.g., it is awfully trusting of users of a raw pointer), its core flaw is that it doesn’t easily enable implementation of inference methods that do anything other than sample the program forward. While this does enable importance sampling via likelihood weighting – which is the inference method we implemented – that’s not very sample efficient. A very useful extension of this library would implement the ability to halt and resume execution of probabilistic programs, thereby enabling other forms of importance sampling, variational inference, and markov-chain monte carlo methods. This is possible in C++ while only automatically allocating memory by overloading <code>operator new</code> in the promise type, or while using only statically allocated memory by overloading <code>operator new</code> to use a statically allocated memory arena. Another version of this library could eschew C++ altogether and re-implement the above design in Rust which defaults to statically allocated coroutines.</p>
+
+
+  </div>
+
+</body>
+</html>

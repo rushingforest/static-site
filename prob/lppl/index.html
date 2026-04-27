@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | prob/lppl</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/prob.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="../index.html">up</a></li>
+              <li><a href="../../econ/index.html">geoeconomics</a></li>
+              <li><a href="../index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<div class="container-fluid" id="prob-home">
+<h1 id="lppl">fmcs/lppl</h1>
+<p>
+  Memory-efficient open-universe probabilistic programming in modern C++.
+  <a href="./lppl-deep-dive.html">Deep dive here</a>.
+  <a href="./prog-synth.html">Program synthesis here</a>.
+</p>
+<ul>
+<li>Record-based (i.e., making trace-based approach explicit instead of implicit)</li>
+<li>Sample-based, with posterior queries by default computed online rather than after sampling is complete – defaulting to constant memory complexity</li>
+<li>Explicit PRNG state (reproducibility)</li>
+<li>Algebraic sum types everywhere instead of boxing</li>
+<li>Header-only</li>
+</ul>
+<p>This should look familiar.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="dt">size_t</span> N&gt;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="bu">std::</span>tuple&lt;<span class="dt">double</span>, <span class="dt">double</span>&gt; </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>linear_regression(<span class="dt">record_t</span>&lt;DTypes&lt;Normal, Gamma&gt;&gt;&amp; r, <span class="bu">std::</span>shared_ptr&lt;data_1d&lt;N&gt;&gt; data) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="kw">auto</span> intercept = sample(r, <span class="st">&quot;intercept&quot;</span>, Normal(), rng);</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="kw">auto</span> slope = sample(r, <span class="st">&quot;slope&quot;</span>, Normal(), rng);</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>    <span class="kw">auto</span> scale = sample(r, <span class="st">&quot;scale&quot;</span>, Gamma(), rng);</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="dt">size_t</span> ix = <span class="dv">0</span>; ix != N; ix++) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        observe(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>            r,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>            <span class="st">&quot;obs/&quot;</span> + <span class="bu">std::</span>to_string(ix),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>            Normal(data-&gt;x[ix] * slope + intercept, scale),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>            data-&gt;y[ix]</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>        );</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>    }</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>    <span class="cf">return</span> <span class="bu">std::</span>make_tuple(intercept, slope);</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>}</span></code></pre></div>
+<h2 id="details">Details</h2>
+<ul>
+<li><a href="./docs/index.html">Documentation</a></li>
+<li><a href="https://gitlab.com/drdewhurst/fncs/-/tree/master/test">Tests</a></li>
+<li><a href=./source/lppl-vlatest.zip>Source</a > (will attempt a download of a zip file to your machine) or <a href="https://gitlab.com/drdewhurst/fmcs"> on Gitlab</a></li>
+</ul>
+
+<p><a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png" /></a><br />The <code>lppl</code> webpage and its subpages are licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License</a>.</p>
+</div>
+</body>

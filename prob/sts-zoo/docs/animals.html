@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>drd | prob/sts-zoo/docs/animals</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../css/stsb3.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="../index.html">up</a></li>
+              <li><a href="../../../econ/index.html">geoeconomics</a></li>
+              <li><a href="../../index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#sts_zoo.animals"><code>sts_zoo.animals</code></a>
+<ul>
+<li><a href="#lltfactory"><code>LLTFactory</code></a>
+<ul>
+<li><a href="#make"><code>make</code></a></li>
+</ul></li>
+<li><a href="#modelfactory"><code>ModelFactory</code></a>
+<ul>
+<li><a href="#make-1"><code>make</code></a></li>
+</ul></li>
+<li><a href="#sgtfactory"><code>SGTFactory</code></a>
+<ul>
+<li><a href="#make-2"><code>make</code></a></li>
+</ul></li>
+<li><a href="#slltfactory"><code>SLLTFactory</code></a>
+<ul>
+<li><a href="#make-3"><code>make</code></a></li>
+</ul></li>
+<li><a href="#stochvolfactory"><code>StochVolFactory</code></a>
+<ul>
+<li><a href="#make-4"><code>make</code></a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="sts_zoo.animals"><code>sts_zoo.animals</code></h1>
+<h2 id="lltfactory"><code>LLTFactory</code></h2>
+<p>A local linear trend (LLT) factory.</p>
+<p>The generative model for programs created by this factory is</p>
+<span class="math display">\[\begin{aligned}
+l_t &amp;= l_{t - 1} + \mathrm{loc}_t + \mathrm{scale\_local}_t w^l_t,\ l_0 = \mathrm{ic\_local} \\
+z_t &amp;= z_{t - 1} + l_t + \mathrm{scale\_level}_t w^z_t,\ z_0 = \mathrm{ic\_level},
+\end{aligned}\]</span>
+<p>where <span class="math inline">\(w^\cdot_t \sim \mathrm{Normal}(0, 1)\)</span>, <span class="math inline">\(t_0 \leq t \leq t_1\)</span>.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>loc (Block || torch.tensor || pyro.distributions)</code>: location parameter</li>
+<li><code>scale_local (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(l_t\)</span></li>
+<li><code>scale_level (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(z_t\)</span></li>
+<li><code>ic_local (torch.tensor || pyro.distributions)</code>: initial condition for <span class="math inline">\(l_t\)</span></li>
+<li><code>ic_level (torch.tensor || pyro.distributions)</code>: initial condition for <span class="math inline">\(z_t\)</span></li>
+</ul>
+<h3 id="make"><code>make</code></h3>
+<p>Creates a new LLT model. The sites in the created model are guaranteed to be unique.</p>
+<p><em>Args:</em></p>
+<p>None</p>
+<h2 id="modelfactory"><code>ModelFactory</code></h2>
+<p>Abstract base class for all model factories. Ensures unique ids for each component of each generated model, and encapsulates model generation through <code>make</code> method.</p>
+<h3 id="make-1"><code>make</code></h3>
+<p>Abstract method to be overridden. Calling <code>.make()</code> should create a new <code>stsb3</code> model with guaranteed unique site names.</p>
+<h2 id="sgtfactory"><code>SGTFactory</code></h2>
+<p>A seasonal + global trend (SGT) factory.</p>
+<p>The generative model for programs created by this factory is</p>
+<span class="math display">\[\begin{aligned}
+l_t &amp;= \alpha_t + \beta_t l_{t-1} + \mathrm{scale\_local}_t w_t \\
+g_t &amp;= a + bt \\
+s_t &amp;= \theta_{t \mathrm{mod} s},\ s=1,...,\mathrm{num\_seasons}\\
+z_t &amp;= s_t + g_t + l_t,
+\end{aligned}\]</span>
+<p>where <span class="math inline">\(w_t \sim \mathrm{Normal}(0, 1)\)</span>, <span class="math inline">\(t_0 \leq t \leq t_1\)</span>, and <span class="math inline">\(\mathrm{num\_seasons}\)</span> is the number of discrete seasons.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>alpha (Block || torch.tensor || pyro.distributions)</code>: intercept parameter of <span class="math inline">\(l_t\)</span></li>
+<li><code>beta (Block || torch.tensor || pyro.distributions)</code>: slope parameter of <span class="math inline">\(l_t\)</span></li>
+<li><code>a (Block || torch.tensor || pyro.distributions)</code> intercept parameter of <span class="math inline">\(g_t\)</span></li>
+<li><code>b (Block || torch.tensor || pyro.distributions)</code> slope parameter of <span class="math inline">\(g_t\)</span></li>
+<li><code>num_seasons (int)</code>: <span class="math inline">\(\geq 2\)</span> integer number of seasons, defaults to 2</li>
+<li><code>seasons (torch.tensor || pyro.distributions)</code> season values</li>
+<li><code>scale_local (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(l_t\)</span></li>
+<li><code>scale_level (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(z_t\)</span></li>
+<li><code>ic_level (torch.tensor || pyro.distributions)</code>: initial condition for <span class="math inline">\(z_t\)</span></li>
+</ul>
+<h3 id="make-2"><code>make</code></h3>
+<p>Creates a new SGT model. The sites in the created model are guaranteed to be unique.</p>
+<p><em>Args:</em></p>
+<p>None</p>
+<h2 id="slltfactory"><code>SLLTFactory</code></h2>
+<p>A semi-local linear trend (SLLT) factory.</p>
+<p>The generative model for programs created by this factory is</p>
+<span class="math display">\[\begin{aligned}
+l_t &amp;= \alpha_t + \beta_t l_{t-1} + \mathrm{scale\_local}_t w^l_t \\
+z_t &amp;= z_{t - 1} + l_t + \mathrm{scale\_level}_t w^z_t,\ z_0 = \mathrm{ic\_level},
+\end{aligned}\]</span>
+<p>where <span class="math inline">\(w^\cdot_t \sim \mathrm{Normal}(0, 1)\)</span>, <span class="math inline">\(t_0 \leq t \leq t_1\)</span>.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>alpha (Block || torch.tensor || pyro.distributions)</code>: intercept parameter of <span class="math inline">\(l_t\)</span></li>
+<li><code>beta (Block || torch.tensor || pyro.distributions)</code>: slope parameter of <span class="math inline">\(l_t\)</span></li>
+<li><code>scale_local (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(l_t\)</span></li>
+<li><code>scale_level (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(z_t\)</span></li>
+<li><code>ic_level (torch.tensor || pyro.distributions)</code>: initial condition for <span class="math inline">\(z_t\)</span></li>
+</ul>
+<h3 id="make-3"><code>make</code></h3>
+<p>Creates a new SLLT model. The sites in the created model are guaranteed to be unique.</p>
+<p><em>Args:</em></p>
+<p>None</p>
+<h2 id="stochvolfactory"><code>StochVolFactory</code></h2>
+<p>A stochastic volatility model factory.</p>
+<p>This is a model for the log of an asset price <span class="math inline">\(S_t\)</span>. Define <span class="math inline">\(z_t = \log S_t\)</span>. The generative model for programs created by this factory is</p>
+<span class="math display">\[\begin{aligned}
+\mathrm{isp}\ \sigma_t &amp;= \mathrm{isp}\ \sigma_{t - 1} + \mathrm{d}t_t\ \mathrm{loc\_ispvol}_t\ +
+     \sqrt{\mathrm{d}t_t}\ \mathrm{scale\_ispvol}_t\ w^{\mathrm{isp}\sigma}_t,\ l_0 = \mathrm{ic\_logvol} \\
+z_t &amp;= z_{t - 1} + \mathrm{d}t_t\mathrm{loc}_t + \sqrt{\mathrm{d}t_t}\sigma_t w^z_t,\ z_0 = \mathrm{ic},
+\end{aligned}\]</span>
+<p>where <span class="math inline">\(w^\cdot_t \sim \mathrm{Normal}(0, 1)\)</span>, <span class="math inline">\(t_0 \leq t \leq t_1\)</span>, and <span class="math inline">\(\mathrm{isp}\)</span> is the inverse softplus function, <span class="math inline">\(\mathrm{isp}(y) = \log(-1 + \exp y)\)</span>.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>dt (Block || torch.tensor || pyro.distributions)</code>: time discretization. If a <code>pyro.distributions</code> object, it should be an atomless distribution with non-negative support and will be interpreted as <span class="math inline">\(p(dt) = \prod_{t_0\leq t\leq t_1} p(dt_t)\)</span>, not as a single draw. Passing a distributions object can be a useful method for modeling jump-y asset prices (e.g., <span class="math inline">\(p(dt_t) = \mathrm{Gamma}(dt_t | \alpha, \beta)\)</span> generates the variance gamma process). However, doing this also makes the model non-identifiable in the scale parameter(s).</li>
+<li><code>loc_ispvol (Block || torch.tensor || pyro.distributions)</code>: location parameter of the isp volatility process</li>
+<li><code>vol_ispvol (Block || torch.tensor || pyro.distributions)</code>: scale/volatility parameter of the isp volatility process</li>
+<li><code>ic_ispvol (torch.tensor || pyro.distributions)</code>: initial condition of the isp_volatility process</li>
+<li><code>scale_level (Block || torch.tensor || pyro.distributions)</code>: scale parameter for <span class="math inline">\(z_t\)</span></li>
+<li><code>loc (Block || torch.tensor || pyro.distributions)</code>: location parameter for the log asset price process.</li>
+<li><code>ic (torch.tensor || pyro.distributions)</code>: initial condition for the log asset price process</li>
+</ul>
+<h3 id="make-4"><code>make</code></h3>
+<p>Creates a new StochVol model. The sites in the created model are guaranteed to be unique.</p>
+<p><em>Args:</em></p>
+<p>None</p>
+</body>
+</html>

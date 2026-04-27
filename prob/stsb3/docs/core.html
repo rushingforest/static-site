@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>drd | prob/stsb3/docs/core</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../../css/stsb3.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="../index.html">up</a></li>
+              <li><a href="../../../econ/index.html">geoeconomics</a></li>
+              <li><a href="../../index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<nav id="TOC">
+<ul>
+<li><a href="#stsb3.core"><code>stsb3.core</code></a><ul>
+<li><a href="#addblock"><code>AddBlock</code></a><ul>
+<li><a href="#maybe_add_blocks"><code>_maybe_add_blocks</code></a></li>
+<li><a href="#maybe_remove_blocks"><code>_maybe_remove_blocks</code></a></li>
+<li><a href="#model"><code>_model</code></a></li>
+<li><a href="#transform"><code>_transform</code></a></li>
+<li><a href="#arctanh"><code>arctanh</code></a></li>
+<li><a href="#clear_cache"><code>clear_cache</code></a></li>
+<li><a href="#cos"><code>cos</code></a></li>
+<li><a href="#diff"><code>diff</code></a></li>
+<li><a href="#exp"><code>exp</code></a></li>
+<li><a href="#floor"><code>floor</code></a></li>
+<li><a href="#invlogit"><code>invlogit</code></a></li>
+<li><a href="#log"><code>log</code></a></li>
+<li><a href="#logdiff"><code>logdiff</code></a></li>
+<li><a href="#logit"><code>logit</code></a></li>
+<li><a href="#model-1"><code>model</code></a></li>
+<li><a href="#prec"><code>prec</code></a></li>
+<li><a href="#sin"><code>sin</code></a></li>
+<li><a href="#softplus"><code>softplus</code></a></li>
+<li><a href="#succ"><code>succ</code></a></li>
+<li><a href="#tanh"><code>tanh</code></a></li>
+</ul></li>
+<li><a href="#block"><code>Block</code></a><ul>
+<li><a href="#maybe_add_blocks-1"><code>_maybe_add_blocks</code></a></li>
+<li><a href="#maybe_remove_blocks-1"><code>_maybe_remove_blocks</code></a></li>
+<li><a href="#model-2"><code>_model</code></a></li>
+<li><a href="#transform-1"><code>_transform</code></a></li>
+<li><a href="#arctanh-1"><code>arctanh</code></a></li>
+<li><a href="#clear_cache-1"><code>clear_cache</code></a></li>
+<li><a href="#cos-1"><code>cos</code></a></li>
+<li><a href="#diff-1"><code>diff</code></a></li>
+<li><a href="#exp-1"><code>exp</code></a></li>
+<li><a href="#floor-1"><code>floor</code></a></li>
+<li><a href="#invlogit-1"><code>invlogit</code></a></li>
+<li><a href="#log-1"><code>log</code></a></li>
+<li><a href="#logdiff-1"><code>logdiff</code></a></li>
+<li><a href="#logit-1"><code>logit</code></a></li>
+<li><a href="#model-3"><code>model</code></a></li>
+<li><a href="#prec-1"><code>prec</code></a></li>
+<li><a href="#sin-1"><code>sin</code></a></li>
+<li><a href="#softplus-1"><code>softplus</code></a></li>
+<li><a href="#succ-1"><code>succ</code></a></li>
+<li><a href="#tanh-1"><code>tanh</code></a></li>
+</ul></li>
+<li><a href="#likelihoodcollection"><code>LikelihoodCollection</code></a><ul>
+<li><a href="#fit_autoguide"><code>_fit_autoguide</code></a></li>
+<li><a href="#maybe_add_blocks-2"><code>_maybe_add_blocks</code></a></li>
+<li><a href="#maybe_remove_blocks-2"><code>_maybe_remove_blocks</code></a></li>
+<li><a href="#model-4"><code>_model</code></a></li>
+<li><a href="#transform-2"><code>_transform</code></a></li>
+<li><a href="#arctanh-2"><code>arctanh</code></a></li>
+<li><a href="#clear_cache-2"><code>clear_cache</code></a></li>
+<li><a href="#cos-2"><code>cos</code></a></li>
+<li><a href="#diff-2"><code>diff</code></a></li>
+<li><a href="#exp-2"><code>exp</code></a></li>
+<li><a href="#fit"><code>fit</code></a></li>
+<li><a href="#floor-2"><code>floor</code></a></li>
+<li><a href="#invlogit-2"><code>invlogit</code></a></li>
+<li><a href="#log-2"><code>log</code></a></li>
+<li><a href="#logdiff-2"><code>logdiff</code></a></li>
+<li><a href="#logit-2"><code>logit</code></a></li>
+<li><a href="#model-5"><code>model</code></a></li>
+<li><a href="#posterior_predictive"><code>posterior_predictive</code></a></li>
+<li><a href="#prec-2"><code>prec</code></a></li>
+<li><a href="#prior_predictive"><code>prior_predictive</code></a></li>
+<li><a href="#sample"><code>sample</code></a></li>
+<li><a href="#sin-2"><code>sin</code></a></li>
+<li><a href="#softplus-2"><code>softplus</code></a></li>
+<li><a href="#succ-2"><code>succ</code></a></li>
+<li><a href="#tanh-2"><code>tanh</code></a></li>
+</ul></li>
+<li><a href="#multiplyblock"><code>MultiplyBlock</code></a><ul>
+<li><a href="#maybe_add_blocks-3"><code>_maybe_add_blocks</code></a></li>
+<li><a href="#maybe_remove_blocks-3"><code>_maybe_remove_blocks</code></a></li>
+<li><a href="#model-6"><code>_model</code></a></li>
+<li><a href="#transform-3"><code>_transform</code></a></li>
+<li><a href="#arctanh-3"><code>arctanh</code></a></li>
+<li><a href="#clear_cache-3"><code>clear_cache</code></a></li>
+<li><a href="#cos-3"><code>cos</code></a></li>
+<li><a href="#diff-3"><code>diff</code></a></li>
+<li><a href="#exp-3"><code>exp</code></a></li>
+<li><a href="#floor-3"><code>floor</code></a></li>
+<li><a href="#invlogit-3"><code>invlogit</code></a></li>
+<li><a href="#log-3"><code>log</code></a></li>
+<li><a href="#logdiff-3"><code>logdiff</code></a></li>
+<li><a href="#logit-3"><code>logit</code></a></li>
+<li><a href="#model-7"><code>model</code></a></li>
+<li><a href="#prec-3"><code>prec</code></a></li>
+<li><a href="#sin-3"><code>sin</code></a></li>
+<li><a href="#softplus-3"><code>softplus</code></a></li>
+<li><a href="#succ-3"><code>succ</code></a></li>
+<li><a href="#tanh-3"><code>tanh</code></a></li>
+</ul></li>
+<li><a href="#noiseblock"><code>NoiseBlock</code></a><ul>
+<li><a href="#fit_autoguide-1"><code>_fit_autoguide</code></a></li>
+<li><a href="#maybe_add_blocks-4"><code>_maybe_add_blocks</code></a></li>
+<li><a href="#maybe_remove_blocks-4"><code>_maybe_remove_blocks</code></a></li>
+<li><a href="#model-8"><code>_model</code></a></li>
+<li><a href="#transform-4"><code>_transform</code></a></li>
+<li><a href="#arctanh-4"><code>arctanh</code></a></li>
+<li><a href="#clear_cache-4"><code>clear_cache</code></a></li>
+<li><a href="#cos-4"><code>cos</code></a></li>
+<li><a href="#diff-4"><code>diff</code></a></li>
+<li><a href="#exp-4"><code>exp</code></a></li>
+<li><a href="#fit-1"><code>fit</code></a></li>
+<li><a href="#floor-4"><code>floor</code></a></li>
+<li><a href="#invlogit-4"><code>invlogit</code></a></li>
+<li><a href="#log-4"><code>log</code></a></li>
+<li><a href="#logdiff-4"><code>logdiff</code></a></li>
+<li><a href="#logit-4"><code>logit</code></a></li>
+<li><a href="#model-9"><code>model</code></a></li>
+<li><a href="#posterior_predictive-1"><code>posterior_predictive</code></a></li>
+<li><a href="#prec-4"><code>prec</code></a></li>
+<li><a href="#prior_predictive-1"><code>prior_predictive</code></a></li>
+<li><a href="#sample-1"><code>sample</code></a></li>
+<li><a href="#sin-4"><code>sin</code></a></li>
+<li><a href="#softplus-4"><code>softplus</code></a></li>
+<li><a href="#succ-4"><code>succ</code></a></li>
+<li><a href="#tanh-4"><code>tanh</code></a></li>
+</ul></li>
+<li><a href="#add_fns_to_repr"><code>_add_fns_to_repr</code></a></li>
+<li><a href="#apply_fns"><code>_apply_fns</code></a></li>
+<li><a href="#closure_init"><code>_closure_init</code></a></li>
+<li><a href="#collect"><code>_collect</code></a></li>
+<li><a href="#forecast_is_marginalized_var"><code>_forecast_is_marginalized_var</code></a></li>
+<li><a href="#forecast_replaceattrs"><code>_forecast_replaceattrs</code></a></li>
+<li><a href="#forecast_setattrs"><code>_forecast_setattrs</code></a></li>
+<li><a href="#generic_init"><code>_generic_init</code></a></li>
+<li><a href="#is_block"><code>_is_block</code></a></li>
+<li><a href="#is_observable_block"><code>_is_observable_block</code></a></li>
+<li><a href="#is_pyro_dist"><code>_is_pyro_dist</code></a></li>
+<li><a href="#leaf_arg_error"><code>_leaf_arg_error</code></a></li>
+<li><a href="#make_2d"><code>_make_2d</code></a></li>
+<li><a href="#make_id"><code>_make_id</code></a></li>
+<li><a href="#noblock_leaf_arg_error"><code>_noblock_leaf_arg_error</code></a></li>
+<li><a href="#obj_name_to_definite"><code>_obj_name_to_definite</code></a></li>
+<li><a href="#obj_name_to_definite_fob"><code>_obj_name_to_definite_fob</code></a></li>
+<li><a href="#obj_name_to_definite_likelihood"><code>_obj_name_to_definite_likelihood</code></a></li>
+<li><a href="#obj_name_to_definite_season"><code>_obj_name_to_definite_season</code></a></li>
+<li><a href="#collect-1"><code>collect</code></a></li>
+<li><a href="#construct_init"><code>construct_init</code></a></li>
+<li><a href="#forecast"><code>forecast</code></a></li>
+<li><a href="#name_to_definite"><code>name_to_definite</code></a></li>
+<li><a href="#redefine"><code>redefine</code></a></li>
+<li><a href="#register_address_component"><code>register_address_component</code></a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="stsb3.core"><code>stsb3.core</code></h1>
+<h2 id="addblock"><code>AddBlock</code></h2>
+<p>Represents the result of adding two blocks toogether.</p>
+<p><code>.model(...)</code> is computed as <code>x ~ p(x); y ~ p(y); x + y</code></p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>left (Block)</code></li>
+<li><code>right (Block)</code></li>
+</ul>
+<h3 id="maybe_add_blocks"><code>_maybe_add_blocks</code></h3>
+<pre><code>def _maybe_add_blocks(self, *args):</code></pre>
+<p>Adds parameters to prec and succ if they subclass Block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: iterable of (name, parameter, bound)</li>
+</ul>
+<h3 id="maybe_remove_blocks"><code>_maybe_remove_blocks</code></h3>
+<p>None</p>
+<h3 id="model"><code>_model</code></h3>
+<p>None</p>
+<h3 id="transform"><code>_transform</code></h3>
+<p>Defines a transform from a string argument.</p>
+<p>Currently the following string arguments are supported:</p>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>logit</li>
+<li>invlogit</li>
+<li>tanh</li>
+<li>arctanh</li>
+<li>invlogit</li>
+<li>logit</li>
+<li>floor</li>
+<li>sin</li>
+<li>cos</li>
+<li>softplus</li>
+<li>diff (lowers time dimemsion by 1)</li>
+<li>logdiff (lowers time dimension by 1)</li>
+</ul>
+<p>The resulting transform will be added to the transform stack iff it is not already at the top of the stack.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>arg (str)</code>: one of the above strings corresponding to function</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>self (stsb.Block)</code></p>
+<h3 id="arctanh"><code>arctanh</code></h3>
+<p><code>x -&gt; arctanh(x)</code>, i.e. <code>x -&gt; 0.5 log ((1 + x) / (1 - x))</code></p>
+<h3 id="clear_cache"><code>clear_cache</code></h3>
+<p>Clears the block cache.</p>
+<p>This method does <em>not</em> alter the cache mode.</p>
+<h3 id="cos"><code>cos</code></h3>
+<p><code>x -&gt; cos x</code></p>
+<h3 id="diff"><code>diff</code></h3>
+<p><code>x -&gt; x[1:] - x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="exp"><code>exp</code></h3>
+<p><code>x -&gt; exp(x)</code></p>
+<h3 id="floor"><code>floor</code></h3>
+<p><code>x -&gt; x - [[x]]</code>, where <code>[[.]]</code> is the fractional part operator</p>
+<h3 id="invlogit"><code>invlogit</code></h3>
+<p><code>x -&gt; 1 / (1 + exp(-x))</code></p>
+<h3 id="log"><code>log</code></h3>
+<p><code>x -&gt; log x</code></p>
+<p>Block paths must be positive for valid output.</p>
+<h3 id="logdiff"><code>logdiff</code></h3>
+<p><code>x -&gt; log x[1:] - log x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="logit"><code>logit</code></h3>
+<p><code>x -&gt; log(x / (1 - x))</code></p>
+<h3 id="model-1"><code>model</code></h3>
+<pre><code>def model(self, *args, **kwargs):</code></pre>
+<p>Draws a batch of samples from the block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: optional positional arguments</li>
+<li><code>kwargs</code>: optional keyword arguments</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>draws</code> (torch.tensor) sampled values from the block</li>
+</ul>
+<h3 id="prec"><code>prec</code></h3>
+<p>Returns the predecessor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_prec (list)</code>: list of predecessor nodes</p>
+<h3 id="sin"><code>sin</code></h3>
+<p><code>x -&gt; sin x</code></p>
+<h3 id="softplus"><code>softplus</code></h3>
+<p><code>x -&gt; log(1 + exp(x))</code></p>
+<h3 id="succ"><code>succ</code></h3>
+<p>Returns the successor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_succ (list)</code>: list of successor nodes</p>
+<h3 id="tanh"><code>tanh</code></h3>
+<p><code>x -&gt; tanh(x)</code>, i.e. <code>x -&gt; (exp(x) - exp(-x)) / (exp(x) + exp(-x))</code></p>
+<h2 id="block"><code>Block</code></h2>
+<p>Base class that all STS blocks should subclass.</p>
+<p>Defines a number of useful modeling constructs and methods, such as deterministic transformations.</p>
+<h3 id="maybe_add_blocks-1"><code>_maybe_add_blocks</code></h3>
+<pre><code>def _maybe_add_blocks(self, *args):</code></pre>
+<p>Adds parameters to prec and succ if they subclass Block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: iterable of (name, parameter, bound)</li>
+</ul>
+<h3 id="maybe_remove_blocks-1"><code>_maybe_remove_blocks</code></h3>
+<p>None</p>
+<h3 id="model-2"><code>_model</code></h3>
+<p>None</p>
+<h3 id="transform-1"><code>_transform</code></h3>
+<p>Defines a transform from a string argument.</p>
+<p>Currently the following string arguments are supported:</p>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>logit</li>
+<li>invlogit</li>
+<li>tanh</li>
+<li>arctanh</li>
+<li>invlogit</li>
+<li>logit</li>
+<li>floor</li>
+<li>sin</li>
+<li>cos</li>
+<li>softplus</li>
+<li>diff (lowers time dimemsion by 1)</li>
+<li>logdiff (lowers time dimension by 1)</li>
+</ul>
+<p>The resulting transform will be added to the transform stack iff it is not already at the top of the stack.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>arg (str)</code>: one of the above strings corresponding to function</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>self (stsb.Block)</code></p>
+<h3 id="arctanh-1"><code>arctanh</code></h3>
+<p><code>x -&gt; arctanh(x)</code>, i.e. <code>x -&gt; 0.5 log ((1 + x) / (1 - x))</code></p>
+<h3 id="clear_cache-1"><code>clear_cache</code></h3>
+<p>Clears the block cache.</p>
+<p>This method does <em>not</em> alter the cache mode.</p>
+<h3 id="cos-1"><code>cos</code></h3>
+<p><code>x -&gt; cos x</code></p>
+<h3 id="diff-1"><code>diff</code></h3>
+<p><code>x -&gt; x[1:] - x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="exp-1"><code>exp</code></h3>
+<p><code>x -&gt; exp(x)</code></p>
+<h3 id="floor-1"><code>floor</code></h3>
+<p><code>x -&gt; x - [[x]]</code>, where <code>[[.]]</code> is the fractional part operator</p>
+<h3 id="invlogit-1"><code>invlogit</code></h3>
+<p><code>x -&gt; 1 / (1 + exp(-x))</code></p>
+<h3 id="log-1"><code>log</code></h3>
+<p><code>x -&gt; log x</code></p>
+<p>Block paths must be positive for valid output.</p>
+<h3 id="logdiff-1"><code>logdiff</code></h3>
+<p><code>x -&gt; log x[1:] - log x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="logit-1"><code>logit</code></h3>
+<p><code>x -&gt; log(x / (1 - x))</code></p>
+<h3 id="model-3"><code>model</code></h3>
+<pre><code>def model(self, *args, **kwargs):</code></pre>
+<p>Draws a batch of samples from the block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: optional positional arguments</li>
+<li><code>kwargs</code>: optional keyword arguments</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>draws</code> (torch.tensor) sampled values from the block</li>
+</ul>
+<h3 id="prec-1"><code>prec</code></h3>
+<p>Returns the predecessor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_prec (list)</code>: list of predecessor nodes</p>
+<h3 id="sin-1"><code>sin</code></h3>
+<p><code>x -&gt; sin x</code></p>
+<h3 id="softplus-1"><code>softplus</code></h3>
+<p><code>x -&gt; log(1 + exp(x))</code></p>
+<h3 id="succ-1"><code>succ</code></h3>
+<p>Returns the successor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_succ (list)</code>: list of successor nodes</p>
+<h3 id="tanh-1"><code>tanh</code></h3>
+<p><code>x -&gt; tanh(x)</code>, i.e. <code>x -&gt; (exp(x) - exp(-x)) / (exp(x) + exp(-x))</code></p>
+<h2 id="likelihoodcollection"><code>LikelihoodCollection</code></h2>
+<pre><code>def __init__(
+    self,
+    dgp,
+    name2lik,
+    name=None,
+    t0=None,
+    t1=None,
+):</code></pre>
+<p>A <code>NoiseBlock</code> subclass that facilitates running inference against multiple <code>NoiseBlock</code> objects simultaneously.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>dgp (callable)</code>: a callable that, when called, calls all <code>NoiseBlock</code> objects in the correct order. This callable might be created with a call to <code>core._collect</code>.</li>
+<li><code>name2lik (dict)</code>: structure <code>{str: Block}</code>, name of the block mapping to the block object.</li>
+</ul>
+<p>See <code>NoiseBlock</code> for definitions of other parameters.</p>
+<h3 id="fit_autoguide"><code>_fit_autoguide</code></h3>
+<p>None</p>
+<h3 id="maybe_add_blocks-2"><code>_maybe_add_blocks</code></h3>
+<pre><code>def _maybe_add_blocks(self, *args):</code></pre>
+<p>Adds parameters to prec and succ if they subclass Block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: iterable of (name, parameter, bound)</li>
+</ul>
+<h3 id="maybe_remove_blocks-2"><code>_maybe_remove_blocks</code></h3>
+<p>None</p>
+<h3 id="model-4"><code>_model</code></h3>
+<p>None</p>
+<h3 id="transform-2"><code>_transform</code></h3>
+<p>Defines a transform from a string argument.</p>
+<p>Currently the following string arguments are supported:</p>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>logit</li>
+<li>invlogit</li>
+<li>tanh</li>
+<li>arctanh</li>
+<li>invlogit</li>
+<li>logit</li>
+<li>floor</li>
+<li>sin</li>
+<li>cos</li>
+<li>softplus</li>
+<li>diff (lowers time dimemsion by 1)</li>
+<li>logdiff (lowers time dimension by 1)</li>
+</ul>
+<p>The resulting transform will be added to the transform stack iff it is not already at the top of the stack.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>arg (str)</code>: one of the above strings corresponding to function</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>self (stsb.Block)</code></p>
+<h3 id="arctanh-2"><code>arctanh</code></h3>
+<p><code>x -&gt; arctanh(x)</code>, i.e. <code>x -&gt; 0.5 log ((1 + x) / (1 - x))</code></p>
+<h3 id="clear_cache-2"><code>clear_cache</code></h3>
+<p>Clears the block cache.</p>
+<p>This method does <em>not</em> alter the cache mode.</p>
+<h3 id="cos-2"><code>cos</code></h3>
+<p><code>x -&gt; cos x</code></p>
+<h3 id="diff-2"><code>diff</code></h3>
+<p><code>x -&gt; x[1:] - x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="exp-2"><code>exp</code></h3>
+<p><code>x -&gt; exp(x)</code></p>
+<h3 id="fit"><code>fit</code></h3>
+<pre><code>def fit(self, method=&quot;nf_block_ar&quot;, method_kwargs=dict(), verbosity=0.01):</code></pre>
+<p>Fits a guide (variational posterior) to the model.</p>
+<p>Wraps multiple Pyro implementations of variational inference. To minimize noise in the estimation you should follow the Pyro guidelines about marginalizing out discrete latent rvs, etc.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>method (str)</code>: one of “advi”, “low_rank”, or “nf_block_ar”.
+<ul>
+<li><code>&quot;advi&quot;</code>: fits a diagonal normal distribution in unconstrained latent space</li>
+<li><code>&quot;low_rank&quot;</code>: fits a low-rank multivariate normal in unconstrained latent space. Unlike the diagonal normal, this guide can capture some nonlocal dependence in latent rvs.</li>
+<li><code>&quot;nf_block_ar&quot;</code>: fits a normalizing flow block autoregressive neural density estimator in unconstrained latent space. This method uses two stacked block autoregressive NNs. See <a href="http://docs.pyro.ai/en/stable/distributions.html#pyro.distributions.transforms.BlockAutoregressive">the Pyro docs</a> for more details about this.</li>
+</ul></li>
+<li><code>method_kwargs (dict)</code>: optional keyword arguments to pass to Pyro’s inference capabilities. If no keyword arguments are specified, sane defaults will be passed instead. Some arguments could include:
+<ul>
+<li><code>&quot;niter&quot;</code>: number of iterations to run optimization (default <code>1000</code>)</li>
+<li><code>&quot;lr&quot;</code>: the learning rate (default <code>0.01</code>)</li>
+<li><code>&quot;loss&quot;</code>: the loss function to use (default <code>&quot;Trace_ELBO&quot;</code>)</li>
+<li><code>&quot;optim&quot;</code>: the optimizer to use (default <code>&quot;AdamW&quot;</code>)</li>
+</ul></li>
+<li><code>verbosity (float)</code>: status messages are printed every <code>int(1.0 / verbosity)</code> iterations</li>
+</ul>
+<h3 id="floor-2"><code>floor</code></h3>
+<p><code>x -&gt; x - [[x]]</code>, where <code>[[.]]</code> is the fractional part operator</p>
+<h3 id="invlogit-2"><code>invlogit</code></h3>
+<p><code>x -&gt; 1 / (1 + exp(-x))</code></p>
+<h3 id="log-2"><code>log</code></h3>
+<p><code>x -&gt; log x</code></p>
+<p>Block paths must be positive for valid output.</p>
+<h3 id="logdiff-2"><code>logdiff</code></h3>
+<p><code>x -&gt; log x[1:] - log x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="logit-2"><code>logit</code></h3>
+<p><code>x -&gt; log(x / (1 - x))</code></p>
+<h3 id="model-5"><code>model</code></h3>
+<pre><code>def model(self, *args, **kwargs):</code></pre>
+<p>Draws a batch of samples from the block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: optional positional arguments</li>
+<li><code>kwargs</code>: optional keyword arguments</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>draws</code> (torch.tensor) sampled values from the block</li>
+</ul>
+<h3 id="posterior_predictive"><code>posterior_predictive</code></h3>
+<pre><code>def posterior_predictive(
+    self,
+    nsamples=1,
+):</code></pre>
+<p>Draws from the posterior predictive distribution of the graph with <code>self</code> as the root</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of samples to draw</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>samples (torch.tensor)</code></p>
+<h3 id="prec-2"><code>prec</code></h3>
+<p>Returns the predecessor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_prec (list)</code>: list of predecessor nodes</p>
+<h3 id="prior_predictive"><code>prior_predictive</code></h3>
+<pre><code>def prior_predictive(
+    self,
+    nsamples=1,
+):</code></pre>
+<p>Draws from the prior predictive distribution of the graph with <code>self</code> as the root</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of samples to draw</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>samples (torch.tensor)</code></p>
+<h3 id="sample"><code>sample</code></h3>
+<pre><code>def sample(
+    self,
+    nsamples=100,
+    thin=0.1,
+    burnin=500,
+):</code></pre>
+<p>Sample from the model’s posterior using the Pyro implementation of the No-U Turn Sampler</p>
+<p>This could take a <em>very long time</em> for long time series. It is recommended to use <code>.fit(...)</code> instead.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of desired samples <em>after burn in and thinning</em></li>
+<li><code>thin (float)</code>: every <code>int(1.0 / thin)</code> sample is kept</li>
+<li><code>burnin (int)</code>: <code>samples[burnin:]</code> are kept</li>
+</ul>
+<h3 id="sin-2"><code>sin</code></h3>
+<p><code>x -&gt; sin x</code></p>
+<h3 id="softplus-2"><code>softplus</code></h3>
+<p><code>x -&gt; log(1 + exp(x))</code></p>
+<h3 id="succ-2"><code>succ</code></h3>
+<p>Returns the successor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_succ (list)</code>: list of successor nodes</p>
+<h3 id="tanh-2"><code>tanh</code></h3>
+<p><code>x -&gt; tanh(x)</code>, i.e. <code>x -&gt; (exp(x) - exp(-x)) / (exp(x) + exp(-x))</code></p>
+<h2 id="multiplyblock"><code>MultiplyBlock</code></h2>
+<p>Represents the result of multiplying two blocks toogether.</p>
+<p><code>.model(...)</code> is computed as <code>x ~ p(x); y ~ p(y); x * y</code></p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>left (Block)</code></li>
+<li><code>right (Block)</code></li>
+</ul>
+<h3 id="maybe_add_blocks-3"><code>_maybe_add_blocks</code></h3>
+<pre><code>def _maybe_add_blocks(self, *args):</code></pre>
+<p>Adds parameters to prec and succ if they subclass Block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: iterable of (name, parameter, bound)</li>
+</ul>
+<h3 id="maybe_remove_blocks-3"><code>_maybe_remove_blocks</code></h3>
+<p>None</p>
+<h3 id="model-6"><code>_model</code></h3>
+<p>None</p>
+<h3 id="transform-3"><code>_transform</code></h3>
+<p>Defines a transform from a string argument.</p>
+<p>Currently the following string arguments are supported:</p>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>logit</li>
+<li>invlogit</li>
+<li>tanh</li>
+<li>arctanh</li>
+<li>invlogit</li>
+<li>logit</li>
+<li>floor</li>
+<li>sin</li>
+<li>cos</li>
+<li>softplus</li>
+<li>diff (lowers time dimemsion by 1)</li>
+<li>logdiff (lowers time dimension by 1)</li>
+</ul>
+<p>The resulting transform will be added to the transform stack iff it is not already at the top of the stack.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>arg (str)</code>: one of the above strings corresponding to function</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>self (stsb.Block)</code></p>
+<h3 id="arctanh-3"><code>arctanh</code></h3>
+<p><code>x -&gt; arctanh(x)</code>, i.e. <code>x -&gt; 0.5 log ((1 + x) / (1 - x))</code></p>
+<h3 id="clear_cache-3"><code>clear_cache</code></h3>
+<p>Clears the block cache.</p>
+<p>This method does <em>not</em> alter the cache mode.</p>
+<h3 id="cos-3"><code>cos</code></h3>
+<p><code>x -&gt; cos x</code></p>
+<h3 id="diff-3"><code>diff</code></h3>
+<p><code>x -&gt; x[1:] - x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="exp-3"><code>exp</code></h3>
+<p><code>x -&gt; exp(x)</code></p>
+<h3 id="floor-3"><code>floor</code></h3>
+<p><code>x -&gt; x - [[x]]</code>, where <code>[[.]]</code> is the fractional part operator</p>
+<h3 id="invlogit-3"><code>invlogit</code></h3>
+<p><code>x -&gt; 1 / (1 + exp(-x))</code></p>
+<h3 id="log-3"><code>log</code></h3>
+<p><code>x -&gt; log x</code></p>
+<p>Block paths must be positive for valid output.</p>
+<h3 id="logdiff-3"><code>logdiff</code></h3>
+<p><code>x -&gt; log x[1:] - log x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="logit-3"><code>logit</code></h3>
+<p><code>x -&gt; log(x / (1 - x))</code></p>
+<h3 id="model-7"><code>model</code></h3>
+<pre><code>def model(self, *args, **kwargs):</code></pre>
+<p>Draws a batch of samples from the block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: optional positional arguments</li>
+<li><code>kwargs</code>: optional keyword arguments</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>draws</code> (torch.tensor) sampled values from the block</li>
+</ul>
+<h3 id="prec-3"><code>prec</code></h3>
+<p>Returns the predecessor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_prec (list)</code>: list of predecessor nodes</p>
+<h3 id="sin-3"><code>sin</code></h3>
+<p><code>x -&gt; sin x</code></p>
+<h3 id="softplus-3"><code>softplus</code></h3>
+<p><code>x -&gt; log(1 + exp(x))</code></p>
+<h3 id="succ-3"><code>succ</code></h3>
+<p>Returns the successor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_succ (list)</code>: list of successor nodes</p>
+<h3 id="tanh-3"><code>tanh</code></h3>
+<p><code>x -&gt; tanh(x)</code>, i.e. <code>x -&gt; (exp(x) - exp(-x)) / (exp(x) + exp(-x))</code></p>
+<h2 id="noiseblock"><code>NoiseBlock</code></h2>
+<p>Base class for all likelihood function-type blocks</p>
+<p>Implements a number of inference wrappers to Pyro implementations.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>dgp (Block)</code>: the latent data-generating process for which <code>self</code> serves as a likelihood function</li>
+<li><code>data (None || torch.tensor)</code>: the observed data. If <code>data is None</code>, then using the noise block is equivalent to drawing from the prior of a state space model</li>
+<li><code>name (None || str)</code>: a unique name of the block. If <code>name is None</code>, a unique name will be automatically generated</li>
+</ul>
+<p>For other argument documentation, see <code>Block</code></p>
+<h3 id="fit_autoguide-1"><code>_fit_autoguide</code></h3>
+<p>None</p>
+<h3 id="maybe_add_blocks-4"><code>_maybe_add_blocks</code></h3>
+<pre><code>def _maybe_add_blocks(self, *args):</code></pre>
+<p>Adds parameters to prec and succ if they subclass Block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: iterable of (name, parameter, bound)</li>
+</ul>
+<h3 id="maybe_remove_blocks-4"><code>_maybe_remove_blocks</code></h3>
+<p>None</p>
+<h3 id="model-8"><code>_model</code></h3>
+<p>None</p>
+<h3 id="transform-4"><code>_transform</code></h3>
+<p>Defines a transform from a string argument.</p>
+<p>Currently the following string arguments are supported:</p>
+<ul>
+<li>exp</li>
+<li>log</li>
+<li>logit</li>
+<li>invlogit</li>
+<li>tanh</li>
+<li>arctanh</li>
+<li>invlogit</li>
+<li>logit</li>
+<li>floor</li>
+<li>sin</li>
+<li>cos</li>
+<li>softplus</li>
+<li>diff (lowers time dimemsion by 1)</li>
+<li>logdiff (lowers time dimension by 1)</li>
+</ul>
+<p>The resulting transform will be added to the transform stack iff it is not already at the top of the stack.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>arg (str)</code>: one of the above strings corresponding to function</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>self (stsb.Block)</code></p>
+<h3 id="arctanh-4"><code>arctanh</code></h3>
+<p><code>x -&gt; arctanh(x)</code>, i.e. <code>x -&gt; 0.5 log ((1 + x) / (1 - x))</code></p>
+<h3 id="clear_cache-4"><code>clear_cache</code></h3>
+<p>Clears the block cache.</p>
+<p>This method does <em>not</em> alter the cache mode.</p>
+<h3 id="cos-4"><code>cos</code></h3>
+<p><code>x -&gt; cos x</code></p>
+<h3 id="diff-4"><code>diff</code></h3>
+<p><code>x -&gt; x[1:] - x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="exp-4"><code>exp</code></h3>
+<p><code>x -&gt; exp(x)</code></p>
+<h3 id="fit-1"><code>fit</code></h3>
+<pre><code>def fit(self, method=&quot;nf_block_ar&quot;, method_kwargs=dict(), verbosity=0.01):</code></pre>
+<p>Fits a guide (variational posterior) to the model.</p>
+<p>Wraps multiple Pyro implementations of variational inference. To minimize noise in the estimation you should follow the Pyro guidelines about marginalizing out discrete latent rvs, etc.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>method (str)</code>: one of “advi”, “low_rank”, or “nf_block_ar”.
+<ul>
+<li><code>&quot;advi&quot;</code>: fits a diagonal normal distribution in unconstrained latent space</li>
+<li><code>&quot;low_rank&quot;</code>: fits a low-rank multivariate normal in unconstrained latent space. Unlike the diagonal normal, this guide can capture some nonlocal dependence in latent rvs.</li>
+<li><code>&quot;nf_block_ar&quot;</code>: fits a normalizing flow block autoregressive neural density estimator in unconstrained latent space. This method uses two stacked block autoregressive NNs. See <a href="http://docs.pyro.ai/en/stable/distributions.html#pyro.distributions.transforms.BlockAutoregressive">the Pyro docs</a> for more details about this.</li>
+</ul></li>
+<li><code>method_kwargs (dict)</code>: optional keyword arguments to pass to Pyro’s inference capabilities. If no keyword arguments are specified, sane defaults will be passed instead. Some arguments could include:
+<ul>
+<li><code>&quot;niter&quot;</code>: number of iterations to run optimization (default <code>1000</code>)</li>
+<li><code>&quot;lr&quot;</code>: the learning rate (default <code>0.01</code>)</li>
+<li><code>&quot;loss&quot;</code>: the loss function to use (default <code>&quot;Trace_ELBO&quot;</code>)</li>
+<li><code>&quot;optim&quot;</code>: the optimizer to use (default <code>&quot;AdamW&quot;</code>)</li>
+</ul></li>
+<li><code>verbosity (float)</code>: status messages are printed every <code>int(1.0 / verbosity)</code> iterations</li>
+</ul>
+<h3 id="floor-4"><code>floor</code></h3>
+<p><code>x -&gt; x - [[x]]</code>, where <code>[[.]]</code> is the fractional part operator</p>
+<h3 id="invlogit-4"><code>invlogit</code></h3>
+<p><code>x -&gt; 1 / (1 + exp(-x))</code></p>
+<h3 id="log-4"><code>log</code></h3>
+<p><code>x -&gt; log x</code></p>
+<p>Block paths must be positive for valid output.</p>
+<h3 id="logdiff-4"><code>logdiff</code></h3>
+<p><code>x -&gt; log x[1:] - log x[:-1]</code></p>
+<p>Note that this lowers the time dimension from T to T - 1.</p>
+<h3 id="logit-4"><code>logit</code></h3>
+<p><code>x -&gt; log(x / (1 - x))</code></p>
+<h3 id="model-9"><code>model</code></h3>
+<pre><code>def model(self, *args, **kwargs):</code></pre>
+<p>Draws a batch of samples from the block.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>args</code>: optional positional arguments</li>
+<li><code>kwargs</code>: optional keyword arguments</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>draws</code> (torch.tensor) sampled values from the block</li>
+</ul>
+<h3 id="posterior_predictive-1"><code>posterior_predictive</code></h3>
+<pre><code>def posterior_predictive(
+    self,
+    nsamples=1,
+):</code></pre>
+<p>Draws from the posterior predictive distribution of the graph with <code>self</code> as the root</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of samples to draw</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>samples (torch.tensor)</code></p>
+<h3 id="prec-4"><code>prec</code></h3>
+<p>Returns the predecessor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_prec (list)</code>: list of predecessor nodes</p>
+<h3 id="prior_predictive-1"><code>prior_predictive</code></h3>
+<pre><code>def prior_predictive(
+    self,
+    nsamples=1,
+):</code></pre>
+<p>Draws from the prior predictive distribution of the graph with <code>self</code> as the root</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of samples to draw</li>
+</ul>
+<p><em>Returns:</em></p>
+<p><code>samples (torch.tensor)</code></p>
+<h3 id="sample-1"><code>sample</code></h3>
+<pre><code>def sample(
+    self,
+    nsamples=100,
+    thin=0.1,
+    burnin=500,
+):</code></pre>
+<p>Sample from the model’s posterior using the Pyro implementation of the No-U Turn Sampler</p>
+<p>This could take a <em>very long time</em> for long time series. It is recommended to use <code>.fit(...)</code> instead.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>nsamples (int)</code>: number of desired samples <em>after burn in and thinning</em></li>
+<li><code>thin (float)</code>: every <code>int(1.0 / thin)</code> sample is kept</li>
+<li><code>burnin (int)</code>: <code>samples[burnin:]</code> are kept</li>
+</ul>
+<h3 id="sin-4"><code>sin</code></h3>
+<p><code>x -&gt; sin x</code></p>
+<h3 id="softplus-4"><code>softplus</code></h3>
+<p><code>x -&gt; log(1 + exp(x))</code></p>
+<h3 id="succ-4"><code>succ</code></h3>
+<p>Returns the successor nodes of <code>self</code> in the (implicit) compute graph</p>
+<p><em>Returns:</em></p>
+<p><code>_succ (list)</code>: list of successor nodes</p>
+<h3 id="tanh-4"><code>tanh</code></h3>
+<p><code>x -&gt; tanh(x)</code>, i.e. <code>x -&gt; (exp(x) - exp(-x)) / (exp(x) + exp(-x))</code></p>
+<h2 id="add_fns_to_repr"><code>_add_fns_to_repr</code></h2>
+<p>None</p>
+<h2 id="apply_fns"><code>_apply_fns</code></h2>
+<p>None</p>
+<h2 id="closure_init"><code>_closure_init</code></h2>
+<pre><code>def closure_init(init_fn):</code></pre>
+<p>Generates a complete constructor given only the implementation-specific portion</p>
+<h2 id="collect"><code>_collect</code></h2>
+<p>Generates a single callable model from a collection of <code>NoiseBlock</code> instances.</p>
+<p>The callable model <code>dgp</code> returns a dictionary <code>{model1_name: model1_returnval,...}</code></p>
+<h2 id="forecast_is_marginalized_var"><code>_forecast_is_marginalized_var</code></h2>
+<p>None</p>
+<h2 id="forecast_replaceattrs"><code>_forecast_replaceattrs</code></h2>
+<p>None</p>
+<h2 id="forecast_setattrs"><code>_forecast_setattrs</code></h2>
+<p>None</p>
+<h2 id="generic_init"><code>_generic_init</code></h2>
+<pre><code>def _generic_init(self, init_fn, name=None, t0=0, t1=2, size=1, **kwargs)</code></pre>
+<p>Generic portion of init function for dynamically-created blocks</p>
+<p><em>Args</em>:</p>
+<ul>
+<li><code>init_fn (callable)</code>: defines the implementation-specific portion of the constructor</li>
+</ul>
+<p>For other argument documentation, see <code>Block</code></p>
+<h2 id="is_block"><code>_is_block</code></h2>
+<p>None</p>
+<h2 id="is_observable_block"><code>_is_observable_block</code></h2>
+<p>None</p>
+<h2 id="is_pyro_dist"><code>_is_pyro_dist</code></h2>
+<p>None</p>
+<h2 id="leaf_arg_error"><code>_leaf_arg_error</code></h2>
+<p>None</p>
+<h2 id="make_2d"><code>_make_2d</code></h2>
+<p>None</p>
+<h2 id="make_id"><code>_make_id</code></h2>
+<p>None</p>
+<h2 id="noblock_leaf_arg_error"><code>_noblock_leaf_arg_error</code></h2>
+<p>None</p>
+<h2 id="obj_name_to_definite"><code>_obj_name_to_definite</code></h2>
+<p>None</p>
+<h2 id="obj_name_to_definite_fob"><code>_obj_name_to_definite_fob</code></h2>
+<p>None</p>
+<h2 id="obj_name_to_definite_likelihood"><code>_obj_name_to_definite_likelihood</code></h2>
+<p>None</p>
+<h2 id="obj_name_to_definite_season"><code>_obj_name_to_definite_season</code></h2>
+<p>None</p>
+<h2 id="collect-1"><code>collect</code></h2>
+<pre><code>def collect(*liks, name=&quot;likelihood_collection&quot;)</code></pre>
+<p>Factory function that generates a unified collection of multiple <code>NoiseBlock</code> subclasses.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>*liks</code>: each element of <code>liks</code> must subclass <code>NoiseBlock</code></li>
+<li><code>name (str)</code>: the name of the returned <code>LikelihoodCollection</code>.</li>
+</ul>
+<h2 id="construct_init"><code>construct_init</code></h2>
+<pre><code>def construct_init(fn_addr_param):</code></pre>
+<p>Constructs an implementation-specific constructor given a parameter specification dictionary.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><p><code>fn_addr_params (dict)</code>: <code>{function_address: parameters}</code>. parameters<code>is a</code>dict` with structure</p>
+<pre><code>    {
+        &quot;expand&quot;: bool,
+        &quot;domain&quot;: domain defined in constants,
+        &quot;default&quot;: Block || torch.tensor || pyro.distributions
+    }</code></pre></li>
+</ul>
+<h2 id="forecast"><code>forecast</code></h2>
+<pre><code>def forecast(dgp, samples, *args, Nt=1, nsamples=1, **kwargs):</code></pre>
+<p>Forecasts the root node of the DGP forward in time.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>dgp (Block)</code>: the root node to forecast forward</li>
+<li><code>samples (dict)</code>: <code>{semantic site name: value}</code> The value tensors should have shape <code>(m, n, T)</code>, where <code>m</code> is the number of samples, <code>n</code> is the batch size, and <code>T</code> is the length of the time series</li>
+<li><code>*args</code>: any additional positional arguments to pass to <code>dgp.model</code></li>
+<li><code>Nt (int):</code> number of timesteps for which to generate forecast. Forecast is generated from <code>t1 + 1</code> to <code>t1 + 1 + Nt</code>.</li>
+<li><code>nsamples (int)</code>: number of samples to draw from the forecast distribution</li>
+<li><code>design_tensors (Dict[str, torch.Tensor])</code>:</li>
+<li><code>**kwargs</code>: any additional keyword arguments to pass to <code>dgp.model</code></li>
+</ul>
+<h2 id="name_to_definite"><code>name_to_definite</code></h2>
+<pre><code>def name_to_definite(skeleton, *names,):</code></pre>
+<p>Makes the names associated with the block skeleton into <code>torch.tensor</code>s according to the skeleton’s current interpretation.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>skeleton (Block-like)</code>: an incompletely-constructed block. The block will be incompletely constructed because the definition of this method is part of the block’s definition.</li>
+<li><code>*names (List[str])</code>: names to make definite</li>
+</ul>
+<p><em>Returns:</em></p>
+<ul>
+<li><code>tuple</code> of <code>torch.tensor</code> corresponding to the passed names.</li>
+</ul>
+<h2 id="redefine"><code>redefine</code></h2>
+<pre><code>def redefine(
+    block,
+    attribute,
+    obj,
+):</code></pre>
+<p>Redefines an attribute of a block to the passed object</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>block (Block)</code></li>
+<li><code>attribute (str)</code></li>
+<li><code>obj (Block || torch.tensor || pyro.distributions)</code></li>
+</ul>
+<h2 id="register_address_component"><code>register_address_component</code></h2>
+<pre><code>def register_address_component(
+    name,
+    expand,
+    domain=None,
+):</code></pre>
+<p>Registers a new functional address component and metadata.</p>
+<p>Addresses in <code>stsb3</code> look like <code>x/y-z</code> or <code>y-z</code>, where <code>x</code> is a context coomponent, <code>y</code> is the name of the rv, and <code>z</code> describes its function. <code>register_address_component</code> allows for runtime definition of <code>z</code> address components for use in new blocks or structure search algorithms.</p>
+<p><em>Args:</em></p>
+<ul>
+<li><code>name (str)</code>: the name. E.g., already-defined names include <code>loc</code>, <code>scale</code>, and <code>amplitude</code></li>
+<li><code>expand (bool)</code>: whether objects whose address contains this component can be expanded using <code>Block</code>s</li>
+<li><code>domain (None || tuple)</code>: if <code>expand</code>, must be a tuple in <code>constants.DOMAINS</code> (i.e., one of <code>(-inf, inf)</code>, <code>(0, inf)</code>, or <code>(0, 1)</code>)</li>
+</ul>
+<p>This function is <em>not</em> safe – if <code>name</code> already exists in <code>constants</code>, this will overwrite its definition and properties.</p>
+</body>
+</html>

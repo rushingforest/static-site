@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | prob/lppl/prog-synth</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/stsb3.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+</head>
+<body>
+
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="../index.html">up</a></li>
+              <li><a href="../../../econ/index.html">geoeconomics</a></li>
+              <li><a href="../../index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<h1 id="code-generation-with-glppl">code generation with <code>glppl</code></h1>
+<p><code>glppl</code> contains functionality to automatically translate graph probabilistic programs into bespoke memory-safe C99 libraries, enabling simulation, inference, and prediction in low-resource or real-time environments.</p>
+<p><em>(If you’re coming from Somewhere Else On The Internet – <code>glppl</code> is a probabilistic programming language that I wrote/am writing. Probabilistic programming elevates probabilistic modeling and statistical inference to first-class programming language constructs. You can read more about this <a href="../index.html">here</a>.)</em></p>
+<p>This page outlines an end-to-end example of how this probabilistic program generation process works. Here, we’ll translate a very simple graph probabilistic program into a C library and use an automatically generated inference algorithm to infer the posterior distribution over the model’s latent random variables. This entire example is available in the <a href="https://gitlab.com/drdewhurst/lppl-graph/-/blob/examples/build/out/my_program_main.c.bak"><code>examples</code></a> branch of the <code>ccyan</code> repo. To run the example starting from the <code>glppl</code> repo, navigate to <code>build/out</code> and run <code>cp my_program_main.c.bak my_program_main.c &amp;&amp; cd build &amp;&amp; cmake .. &amp;&amp; make &amp;&amp; ./my_program.out</code>.</p>
+<p>We’ll consider an extremely simple model: a normal distribution with unknown location and scale parameter. We’ll model the location and scale parameters as latent random variables and infer their empirical posterior distributions. Mathematically, we’ll consider the model \(x Normal(, ) \) with \(Normal(0.0, 1.0) \) and \(Gamma(2.0, 2.0) \). In <code>glppl</code>, it’s simple to write this down:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>graph_node&lt;Normal&gt; normal_model(gr_pair&lt;Normal, Gamma&gt;&amp; gr, <span class="dt">double</span> data_value) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>    <span class="kw">auto</span> loc = sample_g&lt;Normal&gt;(gr, <span class="st">&quot;loc&quot;</span>, rng)(<span class="fl">0.0</span>, <span class="fl">1.0</span>);</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>    <span class="kw">auto</span> scale = sample_g&lt;Gamma&gt;(gr, <span class="st">&quot;scale&quot;</span>, rng)(<span class="fl">2.0</span>, <span class="fl">2.0</span>);</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="cf">return</span> observe_g&lt;Normal&gt;(gr, <span class="st">&quot;data&quot;</span>, data_value)(loc, scale);</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>You could just do inference on this model and be done with it. However, given that you’re reading the code generation tutorial, you probably want to translate this to C and do inference on the generated code. To do this, you first populate a graph intermediate representation (a <a href="https://davidrushingdewhurst.com/glppl/docs/structgraph__ir.html">graph_ir</a> – essentially, a directed acyclic graph data structure with some additional annotations) and then translate that graph_ir into C:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a>gr_pair&lt;Normal, Gamma&gt; gr;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="kw">auto</span> ret = normal_model(gr, <span class="fl">3.0</span>);</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a>program_info info = { .program_name = <span class="st">&quot;my_program&quot;</span>, .inference_algo = glppl_algos::likelihood_weighting{} };</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="kw">auto</span> rep = construct_program(gr, info, <span class="st">&quot;out/&quot;</span>);</span></code></pre></div>
+<p>Here, we pretended that we observed the value <code>3.0</code> so that we had a value with which to initialize the <code>graph_ir</code>. This value doesn’t actually matter; you’ll be able to post your own evidence to the model in C. After we populated the <code>graph_ir</code>, we translated it to C and saved it in the directory <code>./out</code> (which of course you could customize; the directory will be created if it does not exist).</p>
+<p>This program generates lots of code. You’ll see two <code>CMakeLists.txt</code> files so you can build the library, and you’ll see three c/h files – <code>my_program.h</code>, <code>my_program.c</code>, and <code>my_program_main.c</code> – essentially stubbing out an application (<code>my_program_main.c</code>) that uses the generated library. You can feel free to delete <code>my_program_main.c</code> if you don’t want an application stub. We purposefully constructed a very small probabilistic program so we can see the entirety of the generated code – let’s take a look. Here’s all of <code>my_program.h</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="co"> * </span><span class="an">@file</span><span class="co"> </span><span class="cv">my_program.h</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="co"> * </span><span class="an">@author</span><span class="co"> glppl v0.2.0 (lppl</span><span class="an">@davidrushingdewhurst.com)</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@version</span><span class="co"> 0.1.0</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@date</span><span class="co"> Sun Jan 29 20:53:32 2023</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@copyright</span><span class="co"> </span><span class="do">Copyright</span><span class="co"> </span><span class="do">(c)</span><span class="co"> </span><span class="do">above</span><span class="co"> </span><span class="do">date</span><span class="co"> </span><span class="do">-</span><span class="co"> </span><span class="do">present</span><span class="co"> </span><span class="do">David</span><span class="co"> </span><span class="do">Rushing</span><span class="co"> </span><span class="do">Dewhurst.</span><span class="co"> </span><span class="do">All</span><span class="co"> </span><span class="do">rights</span><span class="co"> </span><span class="do">reserved</span><span class="co"> </span><span class="do">except</span><span class="co"> </span><span class="do">as</span><span class="co"> </span><span class="do">stated</span><span class="co"> </span><span class="do">in</span><span class="co"> </span><span class="do">license</span><span class="co"> </span><span class="do">agreement.</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a><span class="pp">#ifndef GENERATED_MY_PROGRAM_H</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a><span class="pp">#define GENERATED_MY_PROGRAM_H</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;ccyan_distributions.h&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a><span class="kw">struct</span> my_program_unobserved {</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>  <span class="dt">double</span> loc;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a>  <span class="dt">double</span> loc_logprob;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>  <span class="dt">double</span> scale;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>  <span class="dt">double</span> scale_logprob;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>};</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a><span class="kw">struct</span> my_program_observed {</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>  <span class="dt">double</span> data;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a>  <span class="dt">double</span> data_logprob;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true"></a>};</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true"></a><span class="kw">struct</span> my_program_state {</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_unobserved unobserved;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_observed observed;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true"></a>};</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true"></a><span class="dt">double</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true"></a>my_program_accumulate_logprob(<span class="kw">struct</span> my_program_state * state_);</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true"></a><span class="dt">double</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true"></a>my_program_accumulate_loglikelihood(<span class="kw">struct</span> my_program_state * state_);</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true"></a><span class="dt">double</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true"></a>my_program_accumulate_loglatent(<span class="kw">struct</span> my_program_state * state_);</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true"></a><span class="kw">struct</span> my_program_state</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true"></a>my_program_standard(<span class="kw">struct</span> my_program_state state, <span class="kw">struct</span> rngstate * my_program_RNG);</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true"></a></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true"></a><span class="dt">double</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true"></a>my_program_score(<span class="kw">struct</span> my_program_state state);</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true"></a></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true"></a><span class="kw">struct</span> my_program_state</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true"></a>my_program_predict(<span class="kw">struct</span> my_program_state state, <span class="kw">struct</span> rngstate * my_program_RNG);</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true"></a><span class="dt">void</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true"></a>my_program_likelihood_weighting(</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_state state,</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_state * empirical_posterior,</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true"></a>  <span class="dt">double</span> * weights,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true"></a>  <span class="dt">double</span> * cum_weights,</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true"></a>  <span class="dt">int</span> num_samples,</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true"></a>  <span class="kw">struct</span> rngstate * my_program_RNG</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true"></a>);</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true"></a><span class="pp">#endif</span></span></code></pre></div>
+<p>All generated code will contain two fundamental structs, one representing the latent space of the program and the other the observed random variables – and a struct that binds instances of the two together to represent the entirety of the state space. Then you get a whole bunch of functions. As the code generation functionality matures, you’ll probably get more, but right now there are three types:</p>
+<ul>
+<li>Accumulation of probability from structs. These functions compute three quantities – \(p(x, z) \) (<code>my_program_accumulate_logprob</code>), \(p(x | z) \) (<code>my_program_accumulate_loglikelihood</code>), and \(p(z) \) (<code>my_program_accumulate_loglatent</code>).</li>
+<li>Model execution under different interpretations of the model. Right now there are three different interpretations, but in the future there will probably be more.
+<ol type="1">
+<li>The standard interpretation – sampling latent random variables and scoring observed random variables against their likeilhood functiosn conditioned on the values of latent random variables, i.e., \( (x, z) f(x, z)\) – <code>my_program_standard</code>.</li>
+<li>The score interpretation – given values for all latent and observed random variables, computing the joint probability of the state space under the model – \(p(x, z), (x, z) f(x, z) \) – <code>my_program_score</code>.</li>
+<li>The prediction interpretation – given hypothesized values for the latent random variables, simulating possible values of the “observed” (in this case, <em>observable</em>) random variables – \(x f(x | z) \) – <code>my_program_predict</code>.</li>
+</ol></li>
+<li>Inference algorithms. In this case, since we passed <code>glppl_algos::likelihood_weighting{}</code> as an argument to <code>construct_program</code>, an instance of the likelihood weighting inference algorithm was automatically generated for us. Requesting an inference algorithm is <code>std::optional</code>; by default no inference algorithm will be generated for you.</li>
+</ul>
+<p>There isn’t much to the implementation of the <code>accumulate</code> functions – they’re just unrolled sums of probabilities from the <code>_logprob</code> fields in the relevant struct(s) – but it’s worth taking a look at the implementations of one of the model execution functions. Here’s <code>my_program_standard</code> for our simple model:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">struct</span> my_program_state</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>my_program_standard(<span class="kw">struct</span> my_program_state state, <span class="kw">struct</span> rngstate * my_program_RNG) {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>  <span class="kw">struct</span> Normal loc_dist = {<span class="fl">0.000000</span>, <span class="fl">1.000000</span>};</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  <span class="dt">double</span> loc = sampleNormal(&amp;loc_dist, my_program_RNG);</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>  state.unobserved.loc = loc;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>  state.unobserved.loc_logprob = logprobNormal(&amp;loc_dist, loc);</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true"></a>  <span class="kw">struct</span> Gamma scale_dist = {<span class="fl">2.000000</span>, <span class="fl">2.000000</span>, (<span class="kw">struct</span> Normal) {<span class="fl">0.0</span>, <span class="fl">1.0</span>}};</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true"></a>  <span class="dt">double</span> scale = sampleGamma(&amp;scale_dist, my_program_RNG);</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true"></a>  state.unobserved.scale = scale;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true"></a>  state.unobserved.scale_logprob = logprobGamma(&amp;scale_dist, scale);</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true"></a>  <span class="dt">double</span> data = state.observed.data;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true"></a>  <span class="kw">struct</span> Normal data_dist = {loc, scale};</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true"></a>  state.observed.data_logprob = logprobNormal(&amp;data_dist, state.observed.data);</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true"></a></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true"></a>  <span class="cf">return</span> state;</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true"></a>}</span></code></pre></div>
+<p>It assumes that you have initialized the observed value in <code>state</code>, but the other fields can remain uninitialized. For each latent random variable, it construct the relevant distribution, samples a value for it, computes the log probability of that value under the distribution, and records the value and the log probability in the <code>unobserved</code> struct. For each observed random variable, it does mostly the same thing except there’s no need to generate a value, of course – the existing value in the state is just scored against the distribution.</p>
+<p>The implementation of the requested inference algorithm is pretty straightforward and should be familiar to you if you have implemented a likelihood weighting algorithm yourself:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="dt">void</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>my_program_likelihood_weighting(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_state state,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_state * empirical_posterior,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>  <span class="dt">double</span> * weights,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>  <span class="dt">double</span> * cum_weights,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>  <span class="dt">int</span> num_samples,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>  <span class="kw">struct</span> rngstate * my_program_RNG</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>) {</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>  <span class="cf">for</span> (<span class="dt">int</span> ix = <span class="dv">0</span>; ix != num_samples; ix++) {</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>    empirical_posterior[ix] = my_program_standard(state, &amp;my_program_RNG);</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>    weights[ix] = my_program_accumulate_loglikelihood(&amp;empirical_posterior[ix]);</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>  }</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>  <span class="dt">double</span> log_z = logsumexp(weights, num_samples);</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>  normalize_in_place(weights, num_samples, log_z);</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>  double_cumsum(weights, cum_weights, num_samples);</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Note that this automatically generated inference algorithm uses the methods described earlier, such as the <code>standard</code> model interpretation and the computation of the likelihood function. <code>logsumexp</code>, <code>normalize_in_place</code> and <code>double_cumsum</code> are utility functions defined as part of <code>ccyan</code>.</p>
+<p>To help you put it all together, the translation utilities also generate you a stubbed out “main” <code>c</code> file that you can use. (Feel free to discard this if, e.g., you just want to use the generated models and algorithms as a modeling and inference library in other code.) Here’s what it looks like when it’s first generated:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="co"> * </span><span class="an">@file</span><span class="co"> </span><span class="cv">my_program_main.c</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="co"> * </span><span class="an">@author</span><span class="co"> [Your name here]  (you</span><span class="an">@email.io)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@version</span><span class="co"> X.Y.Z</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@date</span><span class="co"> Sun Jan 29 21:15:48 2023</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@copyright</span><span class="co"> </span><span class="do">Copyright</span><span class="co"> </span><span class="do">(c)</span><span class="co"> </span><span class="do">above</span><span class="co"> </span><span class="do">date</span><span class="co"> </span><span class="do">-</span><span class="co"> </span><span class="do">present</span><span class="co"> </span><span class="do">[Your</span><span class="co"> </span><span class="do">name</span><span class="co"> </span><span class="do">here].</span><span class="co"> </span><span class="do">All</span><span class="co"> </span><span class="do">rights</span><span class="co"> </span><span class="do">reserved</span><span class="co"> </span><span class="do">subject</span><span class="co"> </span><span class="do">to</span><span class="co"> </span><span class="do">conditions</span><span class="co"> </span><span class="do">in</span><span class="co"> </span><span class="do">glppl</span><span class="co"> </span><span class="do">license</span><span class="co"> </span><span class="do">agreement.</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;my_program.h&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a><span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> ** argv) {</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>  <span class="co">// your magic here...</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a>}</span></code></pre></div>
+<p>We’re not going to do too much to it here – we’ll pretend we observed a single data point and infer the posterior distribution \(p(, | x) \) using the automatically generated inference algorithm we requested. Because of the library that was created for us, this is a very easy task!</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="co">/**</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a><span class="co"> * </span><span class="an">@file</span><span class="co"> </span><span class="cv">my_program_main.c</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="co"> * </span><span class="an">@author</span><span class="co"> [Your name here]  (you</span><span class="an">@email.io)</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a><span class="co"> * </span><span class="an">@version</span><span class="co"> X.Y.Z</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a><span class="co"> * </span><span class="an">@date</span><span class="co"> Thu Jan 26 14:16:20 2023</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a><span class="co"> * </span><span class="an">@copyright</span><span class="co"> </span><span class="do">Copyright</span><span class="co"> </span><span class="do">(c)</span><span class="co"> </span><span class="do">above</span><span class="co"> </span><span class="do">date</span><span class="co"> </span><span class="do">-</span><span class="co"> </span><span class="do">present</span><span class="co"> </span><span class="do">[Your</span><span class="co"> </span><span class="do">name</span><span class="co"> </span><span class="do">here].</span><span class="co"> </span><span class="do">All</span><span class="co"> </span><span class="do">rights</span><span class="co"> </span><span class="do">reserved</span><span class="co"> </span><span class="do">subject</span><span class="co"> </span><span class="do">to</span><span class="co"> </span><span class="do">conditions</span><span class="co"> </span><span class="do">in</span><span class="co"> </span><span class="do">glppl</span><span class="co"> </span><span class="do">license</span><span class="co"> </span><span class="do">agreement.</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a><span class="co"> */</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a><span class="pp">#define _USE_MATH_DEFINES</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;ccyan_distributions.h&gt;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;ccyan_util.h&gt;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;my_program.h&gt;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true"></a><span class="pp">#undef NUM_SAMPLES</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true"></a><span class="pp">#define NUM_SAMPLES 100  </span><span class="co">// size of static inference buffers</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true"></a><span class="co">// ccyan helper macros</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true"></a>MAKE_ARRAY_ARGMAX_FN(<span class="dt">double</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true"></a><span class="kw">struct</span> rngstate RNG = {<span class="dv">20230126</span><span class="bu">ULL</span>};  <span class="co">// prng</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true"></a><span class="kw">struct</span> my_program_state empirical_posterior[NUM_SAMPLES];  <span class="co">// buffer for posterior samples</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true"></a><span class="dt">double</span> weights[NUM_SAMPLES];  <span class="co">// log p(x, z)</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true"></a><span class="dt">double</span> cum_weights[NUM_SAMPLES];</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true"></a><span class="dt">void</span> print_array(<span class="dt">double</span> * array, <span class="dt">int</span> length) {</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true"></a>  printf(<span class="st">&quot;[</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true"></a>  <span class="cf">for</span> (<span class="dt">int</span> ix = <span class="dv">0</span>; ix != length; ix++) printf(<span class="st">&quot;  %f</span><span class="sc">\n</span><span class="st">&quot;</span>, array[ix]);</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true"></a>  printf(<span class="st">&quot;]</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true"></a>}</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true"></a><span class="dt">void</span> print_posterior_sample(<span class="kw">struct</span> my_program_state * state) {</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true"></a>  printf(<span class="st">&quot;struct my_program_state state = {</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true"></a>  printf(<span class="st">&quot;  loc = %f</span><span class="sc">\n</span><span class="st">&quot;</span>, state-&gt;unobserved.loc);</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true"></a>  printf(<span class="st">&quot;  scale = %f</span><span class="sc">\n</span><span class="st">&quot;</span>, state-&gt;unobserved.scale);</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true"></a>  printf(<span class="st">&quot;}</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true"></a>}</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true"></a><span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span> ** argv) {</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true"></a>  <span class="kw">struct</span> my_program_state state;</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true"></a>  state.observed.data = <span class="fl">2.513</span>;  <span class="co">// we would have read this from some memory address connected to a sensor...</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true"></a>  my_program_likelihood_weighting(state, empirical_posterior, weights, cum_weights, NUM_SAMPLES, &amp;RNG);  <span class="co">// do inference</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true"></a>  <span class="kw">struct</span> Categorical posterior = {weights, cum_weights};  <span class="co">// empirical posterior</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true"></a>  </span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true"></a>  printf(<span class="st">&quot;cumulative posterior probabilities:</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true"></a>  print_array(cum_weights, NUM_SAMPLES);</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true"></a></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true"></a>  <span class="dt">int</span> map_estimate = double_argmax(weights, NUM_SAMPLES);</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true"></a>  print_posterior_sample(&amp;empirical_posterior[map_estimate]);</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true"></a>  printf(<span class="st">&quot;done!</span><span class="sc">\n</span><span class="st">&quot;</span>);</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true"></a>}</span></code></pre></div>
+<p>That’s it.</p>
+<h2 id="comparison">Comparison</h2>
+<p>It’s instructive to consider three ways of solving the same inference problem that we defined above. We just walked through one of them – define it in <code>glppl</code>, automatically translate that to C, and then use that C library. The other sensible way to solve this is just to use <code>lppl</code> to define your program, queryer, and inference algorithm. For good measure, we’ll also compare another leading alternative – <a href="https://pyro.ai">pyro</a>, a universal probabilistic programming language embedded in python (and one of the inspirations for <code>lppl</code>!) Here are the approaches, back to back.</p>
+<h3 id="lppl"><code>lppl</code></h3>
+<p>Model:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="dt">double</span> normal_no_value_lppl(<span class="dt">record_t</span>&lt;Normal, Gamma&gt;&amp; r, <span class="dt">double</span> data_value) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>  <span class="kw">auto</span> loc = sample(r, <span class="st">&quot;loc&quot;</span>, Normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>), rng);</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>  <span class="kw">auto</span> scale = sample(r, <span class="st">&quot;scale&quot;</span>, Gamma(<span class="fl">2.0</span>, <span class="fl">2.0</span>), rng);</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>  <span class="cf">return</span> observe(r, <span class="st">&quot;data&quot;</span>, Normal(loc, scale), data_value);</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Queryer and inference:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>  <span class="dt">pp_t</span>&lt;<span class="dt">double</span>, <span class="dt">double</span>, Normal, Gamma&gt; f = normal_no_value_lppl;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>  <span class="kw">auto</span> opts = <span class="dt">inf_options_t</span>(<span class="dv">100</span>);</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>  <span class="kw">auto</span> queryer = weighted_record&lt;<span class="dt">double</span>, Normal, Gamma&gt;();</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>  <span class="kw">auto</span> infer = inference&lt;LikelihoodWeighting&gt;(f, *queryer, opts);</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>  <span class="dt">double</span> data = <span class="fl">3.0</span>;  <span class="co">// again, mocking up data that we would have read from a sensor, etc.</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true"></a>  <span class="co">// we&#39;d time just this call to get a good inference algorithm comparison</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true"></a>  <span class="co">// thsi returns a full empirical posterior -- in this case, over &quot;loc&quot; and &quot;scale&quot;</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true"></a>  <span class="kw">auto</span> result = infer(data);</span></code></pre></div>
+<h3 id="glppl-translation"><code>glppl</code> + translation</h3>
+<p>Model:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>graph_node&lt;Normal&gt; normal_model(gr_pair&lt;Normal, Gamma&gt;&amp; gr, <span class="dt">double</span> data_value) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>    <span class="kw">auto</span> loc = sample_g&lt;Normal&gt;(gr, <span class="st">&quot;loc&quot;</span>, rng)(<span class="fl">0.0</span>, <span class="fl">1.0</span>);</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    <span class="kw">auto</span> scale = sample_g&lt;Gamma&gt;(gr, <span class="st">&quot;scale&quot;</span>, rng)(<span class="fl">2.0</span>, <span class="fl">2.0</span>);</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>    <span class="cf">return</span> observe_g&lt;Normal&gt;(gr, <span class="st">&quot;data&quot;</span>, data_value)(loc, scale);</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Translation:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a>gr_pair&lt;Normal, Gamma&gt; gr;</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="kw">auto</span> ret = normal_model(gr, <span class="fl">3.0</span>);</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>program_info info = { .program_name = <span class="st">&quot;timing_test_program&quot;</span>, .inference_algo = glppl_algos::likelihood_weighting{} };</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="kw">auto</span> rep = construct_program(gr, info, <span class="st">&quot;timing_test/&quot;</span>);</span></code></pre></div>
+<p>Inference (in C);</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>  <span class="kw">struct</span> timing_test_program_state state;</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  state.observed.data = <span class="fl">2.513</span>;  <span class="co">// we would have read this from some memory address connected to a sensor...</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>  <span class="co">// this is roughly equivalent to the timed inference algorithm in lppl example</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>  timing_test_program_likelihood_weighting(state, empirical_posterior, weights, cum_weights, NUM_SAMPLES, &amp;RNG);  <span class="co">// do inference</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>  <span class="kw">struct</span> Categorical posterior = {weights, cum_weights};  <span class="co">// empirical posterior</span></span></code></pre></div>
+<h3 id="pyro"><code>pyro</code></h3>
+<p>Model:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">def</span> normal_model(data: <span class="bu">float</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>    loc <span class="op">=</span> pyro.sample(<span class="st">&quot;loc&quot;</span>, dist.Normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>    scale <span class="op">=</span> pyro.sample(<span class="st">&quot;scale&quot;</span>, dist.Gamma(<span class="fl">2.0</span>, <span class="fl">2.0</span>))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>    <span class="cf">return</span> pyro.sample(<span class="st">&quot;data&quot;</span>, dist.Normal(loc, scale), obs<span class="op">=</span>data)</span></code></pre></div>
+<p>Inference:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a>data <span class="op">=</span> torch.tensor(<span class="fl">3.0</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>importance <span class="op">=</span> pyro.infer.Importance(normal_model, guide<span class="op">=</span><span class="va">None</span>, num_samples<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>posterior <span class="op">=</span> pyro.infer.EmpiricalMarginal(importance.run(data))</span></code></pre></div>
+<h3 id="stacking-up">Stacking up</h3>
+<p>We have to write pretty much the same amount of code for each of them. <code>pyro</code> makes us write the smallest amount of code, but not by much – <code>lppl</code> is nearly as concise and (I’d argue, though I’m biased) enables you to understand what’s going on in the model much more clearly. The <code>glppl</code> translation method requires two compiles – one in C++ and one in C, and overall is a little more verbose than the other two methods. But the <code>glppl</code>-generated C code is much, much faster than the <code>lppl</code> method, to say nothing of <code>pyro</code>:</p>
+<figure>
+<img src="./timing-results.png" alt="" /><figcaption>Results of timing multiple programs</figcaption>
+</figure>
+<p>This isn’t knocking <code>lppl</code> at all – its algorithms are designed to do inference on literally any computable probabilistic model; it quite consciously trades off speed for flexibility and interpretability. (It’s also worth noting that <code>glppl</code> uses <code>lppl</code> underneath…)</p>
+<p>So which method to use? As with everything software engineering-y, it depends on your higher-level objectives. If the rest of your codebase is in python and/or you want some neural network hand-holding, then <code>pyro</code>’s for you. (Disclaimer: I’m not affiliated with the <code>pyro</code> team in any way; it’s just a good library and deserves recognition.) Conversely, if you’re trying to do inference in a real-time or resource constrained environment – or even if you just need to do inference fairly quickly – then using <code>glppl</code> to generate customized code for you probably’s the way to go. The “middle option”, <code>lppl</code>, is still orders of magnitudes faster than <code>pyro</code>, is just as expressive as <code>pyro</code>, and has no dependencies except for the C++ standard library. For most use cases <code>lppl</code> is likely the best choice.</p>
+<h2 id="whats-next">What’s next?</h2>
+<p>Though <code>glppl</code>-generated C/<code>ccyan</code> code is fast, relatively memory efficient, and memory safe, there’s definitely room for improvement. If you look at the source of the generated code or <code>ccyan</code>, you’ll notice lots of copying going on (via pass-by-value). This is because <code>ccyan</code> promises to be memory-safe, and hence it and the <code>glppl</code>-generated code do not use <code>malloc</code>/<code>free</code>. However, there are still probably unncessary copies due to lack of sophistication in the code generation process. We shouldn’t necessarily have to copy an entire <code>state</code> struct if we plan to do inference over only one part of it. Similarly, if we’re using a generated <code>score</code> method with pre-computed parameter values to implement online anomaly detection, we shouldn’t have to copy the struct on every function call. Making improvements such as this would decrease runtime while still ensuring provable memory safety. Other optimizations could focus on struct field ordering to ensure that fields frequently accessed together (e.g., <code>loc</code> and <code>loc_logprob</code>) are adjacent in the struct to increase the likelihood they’re colocated in L1 cache. Non-performance improvements will likely focus on additional autogenerated inference algorithms (e.g., versions of metropolis-hastings, variational inference).</p>
+
+</body>

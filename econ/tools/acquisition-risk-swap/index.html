@@ -1,0 +1,816 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <title>Acquisition risk swap</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (https://tug.org/tex4ht/)"> 
+<meta name="originator" content="TeX4ht (https://tug.org/tex4ht/)"> 
+<!-- html --> 
+<meta name="src" content="main.tex"> 
+<link rel="stylesheet" type="text/css" href="main.css"> 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../css/econ.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+</head><body 
+>
+   <div class="maketitle">
+                                                                                    
+                                                                                    
+                                                                                    
+                                                                                    
+
+<h2 class="titleHead">Acquisition risk swap</h2>
+<div class="author" ><span 
+class="cmr-12">David Dewhurst </span><span class="thank-mark"><a 
+href="#tk-1"><span 
+class="tcrm-1200">*</span></a></span></div><br />
+<div class="date" ><span 
+class="cmr-12">September 24, 2024</span></div>
+   <div class="thanks" ><br /><a 
+ id="tk-1"></a><span class="thank-mark"><span 
+class="tcrm-1000">*</span></span>Defense Advanced Research Projects Agency (DARPA), Arlington, VA 22203, USA.
+<a 
+href="david.dewhurst@darpa.mil" >david.dewhurst@darpa.mil</a></div></div>
+   <div 
+class="abstract" 
+>
+   <h3 class="abstracttitle">
+<span 
+class="cmbx-9">Abstract</span>
+</h3>
+     <!--l. 25--><p class="noindent" ><span 
+class="cmr-9">We introduce an acquisition risk swap (ARS), a type of subordinated risk swap that could be used</span>
+     <span 
+class="cmr-9">to hedge the risk of being unable to acquire a capability during an uncertain future time interval.</span>
+     <span 
+class="cmr-9">Examples of such scenarios include a nation being unable to procure specific military capabilities in</span>
+     <span 
+class="cmr-9">the event of a future conflict or a firm being unable to procure a product component in the event of</span>
+     <span 
+class="cmr-9">a future pivot to a new market. We describe the contractual structure of an ARS, pricing formulae,</span>
+     <span 
+class="cmr-9">and possible market structures that could facilitate the efficient exchange of ARS. Simulations of</span>
+     <span 
+class="cmr-9">ARS price distributions under a variety of example event probability and capability value models</span>
+     <span 
+class="cmr-9">indicate typical positive skew, implying the need for a writer of ARS to hedge their position. We</span>
+     <span 
+class="cmr-9">outline a market structure that decouples pricing and sale of ARS from creation of the capability</span>
+     <span 
+class="cmr-9">to be acquired. Participation in this market enables the writer of ARS to hedge its risk and is a</span>
+     <span 
+class="cmr-9">positive-sum outcome for both the writer of the ARS and the creator of the capability.</span>
+</div>
+   <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
+ id="x1-10001"></a>Introduction</h3>
+<!--l. 33--><p class="noindent" >Swaps are financial instrument that enable two or more parties to exchange value flows at pre-defined times
+or upon the occurrence of precisely defined events. Subordinated risk swaps are a generic class of swaps that
+trade a firm&#8217;s idiosyncratic risk (e.g., managerial or event risk) for a series of cash flows. We introduce an
+acquisition risk swap, a type of subordinated risk swap designed to enable the acquiring agent (&#8220;acquirer&#8221;) to
+hedge the risk of being unable to acquire a capability at an uncertain time in the future. In the case
+of defense acquisition, which is the motivating driver of this work, an example of such a risk
+is that associated with the widely reported shortage of 155mm shells used in modern artillery
+pieces<span class="footnote-mark"><a 
+href="main2.html#fn1x0"><sup class="textsuperscript">1</sup></a></span><a 
+ id="x1-1001f1"></a> .
+<!--l. 40--><p class="indent" >   We argue that adoption of ARS by users of a capability might be desirable for at least three interrelated
+reasons &#8211; risk reduction, efficiency, and transparency:
+     <ul class="itemize1">
+     <li class="itemize">
+                                                                                    
+                                                                                    
+     <!--l. 42--><p class="noindent" ><span 
+class="cmti-10">Risk reduction </span>&#8211; the purchaser of the ARS will be able to plan for future contingencies with
+     increased certainty and will likely pay a lower cost for doing so if the event against which the
+     purchaser is hedging does come to pass.
+     </li>
+     <li class="itemize">
+     <!--l. 43--><p class="noindent" ><span 
+class="cmti-10">Efficiency </span>&#8211; ARS enable each party involved &#8211; the purchaser of the ARS, seller of the ARS, and
+     a downstream creator of the capability that may be desired in the future &#8211; to specialize, focusing
+     on their comparative advantages (of using the capability, determining the probability that the
+     capability is necessary, and creating the capability respectively) rather than the party that needs
+     to use the capability performing all three tasks likely suboptimally.
+     </li>
+     <li class="itemize">
+     <!--l. 44--><p class="noindent" ><span 
+class="cmti-10">Transparency </span>&#8211; as with any type of market, the publication (to a more or less limited audience)
+     of the prices resulting from exchange in that market are a signal of the extent to which the asset
+     traded in that market is demanded and can be supplied. In the case of an ARS, this translates to
+     transparency in the probability of (a) the time window over which a specified event might occur
+     and (b) the value that the acquirer places on the acquired capability. Analysis of the ways in
+     which the capability can be used in a particular context, in conjunction with the inferred value
+     the acquirer places on the capability, reveals aspects of the acquirer&#8217;s strategy in that context.
+     Depending on the context, this may or may not be a desirable feature of an ARS market. For
+     example, prices in an ARS market could be used to signal to a nation&#8217;s adversaries, or to a firm&#8217;s
+     competitors, an intent to take specific actions at a future time.</li></ul>
+<!--l. 48--><p class="noindent" >In Section <a 
+href="#x1-20002">2<!--tex4ht:ref: Sec:asset-pricing --></a> we outline the basic contract structure of an ARS and derive explicit formulae for pricing it under
+multiple assumptions, some of which we then relax. Section <a 
+href="#x1-30003">3<!--tex4ht:ref: sec:market-structure-overview --></a> describes possible market structures that could
+facilitate pricing and exchange of ARS, while Section <a 
+href="#x1-40004">4<!--tex4ht:ref: sec:simulation --></a> describes empirical distributions of ARS prices under
+multiple different modeling assumptions. We close by describing possible generalizations of our work in
+Section <a 
+href="#x1-70005">5<!--tex4ht:ref: sec:generalization --></a>.
+   <h3 class="sectionHead"><span class="titlemark">2   </span> <a 
+ id="x1-20002"></a>Asset definition and pricing</h3>
+<!--l. 54--><p class="noindent" >We outline the asset definition and pricing in discrete time; an extension to continuous time should be
+straightforward. An agent that needs a capability during a future time interval <span 
+class="cmsy-10">{</span><span 
+class="cmmi-10">t,...,T</span><span 
+class="cmsy-10">} </span>holds the ARS,
+paying a coupon of <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub><span 
+class="cmmi-10">,&#x03C4; </span><span 
+class="cmsy-10">&#x2208;{</span>0<span 
+class="cmmi-10">,...,t </span><span 
+class="cmsy-10">- </span>1<span 
+class="cmsy-10">}</span>, where <span 
+class="cmmi-10">t </span><span 
+class="cmsy-10">&#x2264;&#x221E; </span>(the ARS may never be exercised, in which case the
+ARS is a perpetual obligation). When the capability is needed &#8211; the <span 
+class="cmti-10">a priori </span>unknown future time <span 
+class="cmmi-10">t </span>&#8211;
+the holder of the ARS ceases to pay the coupon and is delivered a capability that has value
+<span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub><span 
+class="cmmi-10">,&#x03C4; </span><span 
+class="cmsy-10">&#x2208;{</span><span 
+class="cmmi-10">t,...,T</span><span 
+class="cmsy-10">}</span>.
+<!--l. 58--><p class="indent" >   We solve for the coupon rate <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> by finding such a value that makes the cash flows equivalent at time zero.
+Defining the valuation <span 
+class="cmmi-10">V </span>(<span 
+class="cmmi-10">t</span><sub><span 
+class="cmr-7">1</span></sub><span 
+class="cmmi-10">,t</span><sub><span 
+class="cmr-7">2</span></sub>) = <span 
+class="cmex-10">&#x2211;</span>
+  <sub><span 
+class="cmmi-7">&#x03C4;</span><span 
+class="cmr-7">=</span><span 
+class="cmmi-7">t</span><sub><span 
+class="cmr-5">1</span></sub></sub><sup><span 
+class="cmmi-7">t</span><sub><span 
+class="cmr-5">2</span></sub><span 
+class="cmsy-7">-</span><span 
+class="cmr-7">1</span></sup><span 
+class="cmmi-10">&#x03B2;</span><sup><span 
+class="cmmi-7">&#x03C4;</span></sup>[<span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub><span 
+class="cmmi-10">&#x03B4;</span>(<span 
+class="cmmi-10">&#x03C4; &#x003C; t</span>) + <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub><span 
+class="cmmi-10">&#x03B4;</span>(<span 
+class="cmmi-10">&#x03C4; </span><span 
+class="cmsy-10">&#x2265; </span><span 
+class="cmmi-10">t</span>)]<span 
+class="cmmi-10">, </span>where <span 
+class="cmmi-10">&#x03B2; </span>= <img 
+src="main0x.png" alt="-1-
+1+r"  class="frac" align="middle"> and <span 
+class="cmmi-10">r </span>is the risk
+free rate, the coupon payments are those values <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> that satisfy <span 
+class="cmmi-10">V </span>(0<span 
+class="cmmi-10">,t</span>) = <span 
+class="cmmi-10">V </span>(<span 
+class="cmmi-10">t,T</span>). With the simplifying
+assumption that <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> = <span 
+class="cmmi-10">m,</span><span 
+class="cmmi-10">&#x00A0;&#x03C4; </span><span 
+class="cmsy-10">&#x2208;{</span>0<span 
+class="cmmi-10">,...,t </span><span 
+class="cmsy-10">- </span>1<span 
+class="cmsy-10">}</span>, the coupon payment is <span 
+class="cmmi-10">m </span>= <img 
+src="main1x.png" alt="&#x03B2;-t1-
+&#x03B2;-1"  class="frac" align="middle"> <span 
+class="cmex-10">&#x2211;</span>
+     <sub><span 
+class="cmmi-7">&#x03C4;</span><span 
+class="cmr-7">=</span><span 
+class="cmmi-7">t</span></sub><sup><span 
+class="cmmi-7">T</span><span 
+class="cmsy-7">-</span><span 
+class="cmr-7">1</span></sup><span 
+class="cmmi-10">&#x03B2;</span><sup><span 
+class="cmmi-7">&#x03C4;</span></sup><span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub><span 
+class="cmmi-10">, </span>or under the
+additional assumption that the value of the acquired capability is equal at all times <span 
+class="cmmi-10">&#x03C4; </span><span 
+class="cmsy-10">&#x2208;{</span><span 
+class="cmmi-10">t,...,T </span><span 
+class="cmsy-10">- </span>1<span 
+class="cmsy-10">}</span>,
+<span 
+class="cmmi-10">m </span>= <span 
+class="cmmi-10">v</span><img 
+src="main2x.png" alt="&#x03B2;T-&#x03B2;t
+&#x03B2;t-1"  class="frac" align="middle"><span 
+class="cmmi-10">. </span>Here, <span 
+class="cmmi-10">m </span>is a random variable, as it depends on the random time interval <span 
+class="cmsy-10">{</span><span 
+class="cmmi-10">t,...,T </span><span 
+class="cmsy-10">- </span>1<span 
+class="cmsy-10">} </span>over
+which the capability is required. Modeling the time interval with the joint distribution (<span 
+class="cmmi-10">t,T</span>) <span 
+class="cmsy-10">~ </span><span 
+class="cmmi-10">p</span>(<span 
+class="cmmi-10">t,T</span>), we
+take the coupon payment as the expected value of <span 
+class="cmmi-10">m</span>, <img 
+src="main3x.png" alt="&#x02C6;m"  class="circ" > = <span 
+class="cmmi-10">E</span><sub><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">t,T</span><span 
+class="cmr-7">)</span><span 
+class="cmsy-7">~</span><span 
+class="cmmi-7">p</span><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">t,T</span><span 
+class="cmr-7">)</span></sub>[<span 
+class="cmmi-10">v</span><img 
+src="main4x.png" alt=" T  t
+&#x03B2;&#x03B2;t--&#x03B2;1-"  class="frac" align="middle">].
+<!--l. 72--><p class="indent" >   More generally, the interest rate <span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> and the valuation of the capability <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> may vary in time. Interest rates
+may be correlated with the existence or nature of the conditioning event; for example, conflict
+could lead to shortages of basic necessities such as food and fuel, raising inflation which could
+cause a central bank to raise interest rates <span class="cite">[<a 
+href="#Xbenjamin1984war">BK84</a>]</span>. The value of one capability immediately after
+the inception of a conflict could be very high but decrease as time progresses, while another
+capability could increase in importance as a conflict progresses. With these considerations in mind, a
+more general valuation of the ARS is <span 
+class="cmmi-10">m </span>= <span 
+class="cmmi-10">E</span><sub><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">r,v,t,T</span><span 
+class="cmr-7">)</span><span 
+class="cmsy-7">~</span><span 
+class="cmmi-7">p</span><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">r,v,t,T</span><span 
+class="cmr-7">)</span></sub>[<img 
+src="main5x.png" alt="&#x2211;T -1 &#x03C4;
+-&#x2211;&#x03C4;t=-t1 &#x03B2;&#x03C4;v&#x03C4;&#x03C4;
+   &#x03C4;=0&#x03B2;&#x03C4;"  class="frac" align="middle">], where analogously
+<span 
+class="cmmi-10">&#x03B2;</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> = <img 
+src="main6x.png" alt="--1-
+1+r&#x03C4;"  class="frac" align="middle">.
+                                                                                    
+                                                                                    
+<!--l. 80--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">3   </span> <a 
+ id="x1-30003"></a>Market structure</h3>
+<!--l. 82--><p class="noindent" >We undertake a brief discussion of naive and more nuanced market structures for ARS, and discuss methods
+by which price discovery for ARS is likely to occur. We leave in-depth analysis of possible market structures
+for future work.
+<!--l. 85--><p class="indent" >   The mechanics of an ARS contract are specified in Section <a 
+href="#x1-20002">2<!--tex4ht:ref: Sec:asset-pricing --></a>; a graphical depiction of these simple
+mechanics is displayed in Fig.&#x00A0;<a 
+href="#x1-30011">1<!--tex4ht:ref: fig:ars-structure-simple --></a>, <hr class="figure"><div class="figure" 
+>
+                                                                                    
+                                                                                    
+<a 
+ id="x1-30011"></a>
+                                                                                    
+                                                                                    
+<!--l. 88--><p class="noindent" ><img 
+src="ars-structure-simple.png" alt="PIC"  
+width="443" height="443" >
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;1: </span><span  
+class="content">Basic mechanics of an acquisition risk swap (ARS) contract: until a event that may or may
+not occur at an unspecified future time, the buyer of the ARS (&#8220;acquirer&#8221;) pays a stream of cash flows
+<span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> to the writer of the ARS, shown in panel (a). During the time window specified by the start and
+end dates of the event, the acquirer ceases to pay the cash flows and the writer provides the acquirer
+with a capability valued at <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> in each time period, shown in panel (b). </span></div><!--tex4ht:label?: x1-30011 -->
+                                                                                    
+                                                                                    
+<!--l. 93--><p class="indent" >   </div><hr class="endfigure">
+<!--l. 94--><p class="indent" >   in which panel (a) refers to before the ARS is exercised by the holder and panel (b) describes the
+structure after it is exercised. We display a notional, more-developed market structure in Fig.&#x00A0;<a 
+href="#x1-30022">2<!--tex4ht:ref: fig:ars-structure-complex --></a>.
+<hr class="figure"><div class="figure" 
+>
+                                                                                    
+                                                                                    
+<a 
+ id="x1-30022"></a>
+                                                                                    
+                                                                                    
+<!--l. 98--><p class="noindent" ><img 
+src="ars-structure-complex.png" alt="PIC"  
+width="443" height="443" >
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;2: </span><span  
+class="content">A more realistic market structure for ARS than that presented in Fig.&#x00A0;<a 
+href="#x1-30011">1<!--tex4ht:ref: fig:ars-structure-simple --></a> decomposes the
+specializations of estimating the risk of exercise and computation of ARS value from the specialization
+of actually producing the capability. In this structure, the writer of the ARS effectively puts a capability
+creator (e.g., a manufacturer) on retainer in case the conditioning event occurs, depicted in panel (a).
+If the event does occur, the writer pays the manufacturer an income stream (e.g., equal to the marginal
+cost of producing the capability) and the creator delivers the capability to the writer, displayed in
+panel (b). </span></div><!--tex4ht:label?: x1-30022 -->
+                                                                                    
+                                                                                    
+<!--l. 104--><p class="indent" >   </div><hr class="endfigure">
+<!--l. 105--><p class="indent" >   In this example, the writer sells the ARS to the acquirer and hedges the risk it takes on in doing so by
+contracting with a creator of the capability (e.g., in the 155mm shell example, a manufacturer capable
+of rapidly retooling to create shell casings), paying that creator a fixed-fee retainer <span 
+class="cmmi-10">R </span>at the
+initial time period. If the triggering event occurs, the writer pays a further stream of cashflows <span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub>
+(which are possibly zero) to the creator; the creator creates the capability and delivers it to the
+acquirer.
+<!--l. 110--><p class="indent" >   A more complex market structure, such as the one outlined in the previous paragraph and displayed in
+Fig.&#x00A0;<a 
+href="#x1-30022">2<!--tex4ht:ref: fig:ars-structure-complex --></a>, has at least two benefits over the naive market structure displayed in Fig.&#x00A0;<a 
+href="#x1-30011">1<!--tex4ht:ref: fig:ars-structure-simple --></a>:
+     <ol  class="enumerate1" >
+<li 
+  class="enumerate" id="x1-3004x1">
+     <!--l. 112--><p class="noindent" ><span 
+class="cmti-10">Decoupling of financial valuation from physical delivery. </span>In general, there is no reason to believe
+     that a firm with the expertise valuing an ARS &#8211; i.e., a firm that believes it can accurately and
+     precisely estimate the probability distribution of the window over which a capability would be
+     needed &#8211; would also have the expertise required to rapidly create that capability. For example, a
+     geopolitical risk firm that believes it can assess the likelihood and duration of a conflict between
+     two nations is probably not the same firm that can rapidly manufacture a large quantity of shell
+     casings.
+     </li>
+<li 
+  class="enumerate" id="x1-3006x2">
+     <!--l. 113--><p class="noindent" ><span 
+class="cmti-10">Incentive to participate in the market due to speculation and innovation. </span>The writer of an ARS
+     might believe that the conditioning event will occur in the very distant future, or has a very low
+     probability of occurrence at all, and therefore believe that the negotiated stream of income <span 
+class="cmmi-10">m</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub>
+     represents a low-risk profit opportunity. The creator of the capability, on the other hand, may
+     have no opinion about the likelihood of the event at all, but assesses it can very rapidly create
+     the required capability with almost no advance warning and at a cost exactly equal to <span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> in
+     perpetuity; in this case, the retaining fee <span 
+class="cmmi-10">R </span>is essentially a risk-free profit for the creator.</li></ol>
+<!--l. 117--><p class="indent" >   How might the price of an ARS be discovered? As with other swaps, this would likely depend on the
+liquidity of the underlying capability that the acquirer is hedging and the relative market power of the
+acquirer(s) compared with the writer(s). In the monopsonistic case, and when the capability is relatively
+liquid or even standardized, it would seem likely that the acquirer would run an English reverse auction (or
+similar commonly practiced single reverse auction). When the capability is less liquid the contracted price
+could be negotiated over-the-counter between the writer(s) and acquirer. We explore other mechanisms for
+price discovery in Section <a 
+href="#x1-70005">5<!--tex4ht:ref: sec:generalization --></a>.
+   <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
+ id="x1-40004"></a>Simulation</h3>
+<!--l. 125--><p class="noindent" >We outline some empirical statistical properties of the ARS under simple statistical models and an example market
+structure.<span class="footnote-mark"><a 
+href="main3.html#fn2x0"><sup class="textsuperscript">2</sup></a></span><a 
+ id="x1-4001f2"></a> 
+   <h4 class="subsectionHead"><span class="titlemark">4.1   </span> <a 
+ id="x1-50004.1"></a>Statistics of price distributions</h4>
+<!--l. 132--><p class="noindent" >We briefly compare empirical distributions of ARS price under different generative models of event time
+interval <span 
+class="cmsy-10">{</span><span 
+class="cmmi-10">t,...,T </span><span 
+class="cmsy-10">- </span>1<span 
+class="cmsy-10">}</span>, value <span 
+class="cmmi-10">v</span>, and interest rate <span 
+class="cmmi-10">r</span>. We emphasize that these distributions are rough indicators
+of behavior only as the price of ARS will depend crucially on estimation of value and event time interval
+probability that will very likely be highly context-dependent. Specializations to specific operational contexts
+are not in scope for this work.
+                                                                                    
+                                                                                    
+<!--l. 136--><p class="indent" >   Each pricing example uses the naive event probability distribution <span 
+class="cmmi-10">p</span>(<span 
+class="cmmi-10">t,T</span>) = <span 
+class="cmmi-10">p</span>(<span 
+class="cmmi-10">t</span>)<span 
+class="cmmi-10">p</span>(<span 
+class="cmmi-10">&#x03B4;t</span>) = Geometric(<span 
+class="cmmi-10">t</span><span 
+class="cmsy-10">|</span><span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub>)<span 
+class="cmmi-10">&#x00A0;</span>Geometric(<span 
+class="cmmi-10">&#x03B4;t</span><span 
+class="cmsy-10">|</span><span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub>),
+where <span 
+class="cmmi-10">T </span>= <span 
+class="cmmi-10">t </span>+ <span 
+class="cmmi-10">&#x03B4;t</span>. Each example begins with a notional risk-free rate of 4%, capability value of <span 
+class="cmmi-10">v </span>= 100
+(abstract numeraire), and <span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub> = <span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub> = <img 
+src="main7x.png" alt="1
+4"  class="frac" align="middle">. Empirical density functions of price are displayed in Figure <a 
+href="#x1-50013">3<!--tex4ht:ref: fig:ars-pricing-model --></a>.
+<hr class="figure"><div class="figure" 
+>
+                                                                                    
+                                                                                    
+<a 
+ id="x1-50013"></a>
+                                                                                    
+                                                                                    
+<!--l. 143--><p class="noindent" ><img 
+src="ars-pricing-model-compare.png" alt="PIC"  
+width="332" height="332" >
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;3: </span><span  
+class="content">Empirical ARS price distributions under multiple simple pricing assumptions generally have
+positive skew. The parameterizations of each scenario are outlined in Section <a 
+href="#x1-50004.1">4.1<!--tex4ht:ref: sec:ars-pricing --></a>. </span></div><!--tex4ht:label?: x1-50013 -->
+                                                                                    
+                                                                                    
+<!--l. 148--><p class="indent" >   </div><hr class="endfigure">
+<!--l. 150--><p class="indent" >   We describe scenarios in terms of changes to the default parameters listed above.
+     <ul class="itemize1">
+     <li class="itemize">
+     <!--l. 152--><p class="noindent" >(Geo) &#8211; no changes to the specifications listed above.
+     </li>
+     <li class="itemize">
+     <!--l. 153--><p class="noindent" >(NormGeo) &#8211; <img 
+src="main8x.png" alt="&#x02C6;v"  class="circ" > <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">v,&#x03C3;</span><sub><span 
+class="cmmi-7">v</span></sub><sup><span 
+class="cmr-7">2</span></sup>). By Jensen&#8217;s inequality, the linearity of the identity function,
+     and  the  conditional  independence  of  <span 
+class="cmmi-10">v </span>and  (<span 
+class="cmmi-10">t,T</span>),  the  price  distribution  in  this  scenario  is
+     theoretically identical to that of Geo.
+     </li>
+     <li class="itemize">
+     <!--l. 154--><p class="noindent" >(IncVal) &#8211; <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> = <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span><span 
+class="cmsy-7">-</span><span 
+class="cmr-7">1</span></sub>(1 + <span 
+class="cmmi-10">&#x03F5;</span>), where <span 
+class="cmmi-10">&#x03F5; </span><span 
+class="cmsy-10">~</span> Exponential(<span 
+class="cmmi-10">&#x03F5;</span><span 
+class="cmsy-10">|</span>1), modeling an on-average-precipitous
+     increase in the value of the capability for the duration of the event.
+     </li>
+     <li class="itemize">
+     <!--l. 155--><p class="noindent" >(IncValIR) &#8211; simultaneously (a) the value of the capability deterministically increases from <span 
+class="cmmi-10">v </span>to
+     asymptotically approach a new steady state according to <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> = <span 
+class="cmmi-10">v&#x2215;</span>2 + <span 
+class="cmmi-10">v&#x2215;</span>[1 + exp(<span 
+class="cmsy-10">-</span>(<span 
+class="cmmi-10">&#x03C4; </span><span 
+class="cmsy-10">- </span><span 
+class="cmmi-10">t</span>))] and
+     (b) the interest rate moves from stochastic fluctuation about the steady state <span 
+class="cmmi-10">r</span><sub><span 
+class="cmsy-7">-</span></sub> = 4% to the
+     higher steady state <span 
+class="cmmi-10">r</span><sub><span 
+class="cmr-7">+</span></sub> = 6<span 
+class="cmmi-10">.</span>5%. Stochastic fluctuation is modeled via a single factor short rate
+     model, <span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub> = <span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span><span 
+class="cmsy-7">-</span><span 
+class="cmr-7">1</span></sub> + <span 
+class="cmmi-10">&#x03B8;</span>(<span 
+class="cmmi-10">r</span><sup><span 
+class="cmsy-7">*</span></sup><span 
+class="cmsy-10">- </span><span 
+class="cmmi-10">r</span><sub><span 
+class="cmmi-7">&#x03C4;</span><span 
+class="cmsy-7">-</span><span 
+class="cmr-7">1</span></sub>) + <span 
+class="cmmi-10">&#x03BE;</span>, where <span 
+class="cmmi-10">&#x03BE; </span><span 
+class="cmsy-10">~</span> Normal(0<span 
+class="cmmi-10">,&#x03C3;</span><sub><span 
+class="cmmi-7">&#x03BE;</span></sub><sup><span 
+class="cmr-7">2</span></sup>) and <span 
+class="cmmi-10">r</span><sup><span 
+class="cmsy-7">*</span></sup> is the equilibrium rate
+     and <span 
+class="cmmi-10">&#x03B8; &#x003E; </span>0.
+     </li>
+     <li class="itemize">
+     <!--l. 158--><p class="noindent" >(DecValIR) &#8211; simultaneously (a) the value of the capability deterministically decreases according
+     to <span 
+class="cmmi-10">v</span><sub><span 
+class="cmmi-7">&#x03C4;</span></sub>  =  <span 
+class="cmmi-10">v&#x2215;</span>exp(<span 
+class="cmsy-10">-</span>(<span 
+class="cmmi-10">&#x03C4; </span><span 
+class="cmsy-10">- </span><span 
+class="cmmi-10">t</span>)) and (b) the interest rate fluctuates according to the same model
+     presented in IncValIR.</li></ul>
+<!--l. 160--><p class="noindent" >In these examples, ARS price distributions generally have excess mass in their right tails, meaning that there is
+substantial tail risk that the actual value of the cash flows to the right of the event start date have higher
+value than what would be suggested by the expected value pricing formulae presented earlier. We will discuss
+hedging strategies in Section <a 
+href="#x1-70005">5<!--tex4ht:ref: sec:generalization --></a>.
+   <h4 class="subsectionHead"><span class="titlemark">4.2   </span> <a 
+ id="x1-60004.2"></a>Market structure</h4>
+<!--l. 165--><p class="noindent" >We construct a simulation of a simple form of the market structure presented in Fig.&#x00A0;<a 
+href="#x1-30022">2<!--tex4ht:ref: fig:ars-structure-complex --></a>. There is a single
+acquirer who has a mean reservation price <img 
+src="main9x.png" alt="&#x02C6;m"  class="circ" > <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">m,&#x03C3;</span><sup><span 
+class="cmr-7">2</span></sup>), where <img 
+src="main10x.png" alt="&#x02C6;m"  class="circ" > is computed under the distribution
+<span 
+class="cmmi-10">p</span>(<span 
+class="cmmi-10">t,T</span>) = Geometric(<span 
+class="cmmi-10">t</span><span 
+class="cmsy-10">|</span><span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub><sup><span 
+class="cmsy-7">*</span></sup>)<span 
+class="cmmi-10">&#x00A0;</span>Geometric(<span 
+class="cmmi-10">&#x03B4;t</span><span 
+class="cmsy-10">|</span><span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub><sup><span 
+class="cmsy-7">*</span></sup>)<span 
+class="cmmi-10">, </span>where <span 
+class="cmmi-10">T </span>= <span 
+class="cmmi-10">t </span>+ <span 
+class="cmmi-10">&#x03B4;t </span>and the estimates <span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub><sup><span 
+class="cmsy-7">*</span></sup> and <span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub><sup><span 
+class="cmsy-7">*</span></sup> are publicly
+known. The acquirer&#8217;s observed price of the ARS is given by <span 
+class="cmmi-10">m </span><span 
+class="cmsy-10">~</span> Normal(<img 
+src="main11x.png" alt="m&#x02C6;"  class="circ" ><span 
+class="cmmi-10">,&#x03C3;</span><sub><img 
+src="main12x.png" alt="&#x02C6;m"  class="circ" ></sub><sup><span 
+class="cmr-7">2</span></sup>). There are <span 
+class="cmmi-10">n </span>= 1<span 
+class="cmmi-10">,...,N</span>
+writers of ARS who compete to sell a single ARS to the acquirer via an English reverse auction.
+They have heterogeneous beliefs about the start and stop probability of the event, modeling it as
+<span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub><sup><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">n</span><span 
+class="cmr-7">)</span></sup> <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">t</span></sub><sup><span 
+class="cmsy-7">*</span></sup><span 
+class="cmmi-10">,&#x03C3;</span><sub><span 
+class="cmmi-7">&#x03C1;</span><sub><span 
+class="cmmi-5">t</span></sub><sup><span 
+class="cmsy-5">*</span></sup></sub><sup><span 
+class="cmr-7">2</span></sup>) and <span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub><sup><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">n</span><span 
+class="cmr-7">)</span></sup> <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">&#x03C1;</span><sub><span 
+class="cmmi-7">&#x03B4;t</span></sub><sup><span 
+class="cmsy-7">*</span></sup><span 
+class="cmmi-10">,&#x03C3;</span><sub><span 
+class="cmmi-7">&#x03C1;</span><sub><span 
+class="cmmi-5">&#x03B4;t</span></sub><sup><span 
+class="cmsy-5">*</span></sup></sub><sup><span 
+class="cmr-7">2</span></sup>) conditioned to lie in (0<span 
+class="cmmi-10">,</span>1). There are <span 
+class="cmmi-10">&#x2113; </span>= 1<span 
+class="cmmi-10">,...L</span>
+manufacturers who can create the capability desired by the acquirer. Each manufacturer has a private reserve
+value <span 
+class="cmmi-10">R</span><sub><span 
+class="cmmi-7">&#x2113;</span></sub> <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">m,&#x03C3;</span><sub><span 
+class="cmmi-7">R</span></sub>) they require to accept a contract for manufacture at an unknown future date, and
+each has a marginal production cost of <span 
+class="cmmi-10">c</span><sub><span 
+class="cmmi-7">&#x2113;</span></sub> <span 
+class="cmsy-10">~</span> Normal(<span 
+class="cmmi-10">m&#x2215;</span>2<span 
+class="cmmi-10">,&#x03C3;</span><sub><span 
+class="cmmi-7">c</span></sub>). Before time <span 
+class="cmmi-10">&#x03C4; </span>= 0, the acquirer
+conducts an English reverse auction to purchase the ARS from a writer. Then, the successful writer
+conducts an English reverse auction on reserve price with the manufacturers. If this market clears,
+meaning that the the writer who wins the auction has a price for the ARS is less than or equal to
+the acquirer&#8217;s maximum willingness to pay and, similarly, that the manufacturer who wins the
+auction has a reserve price for manufacturing that is less than or equal to the writer&#8217;s maximum
+willingness to pay, the model advances in discrete time, with contract mechanics as specified in Section
+                                                                                    
+                                                                                    
+<a 
+href="#x1-20002">2<!--tex4ht:ref: Sec:asset-pricing --></a>.<span class="footnote-mark"><a 
+href="main4.html#fn3x0"><sup class="textsuperscript">3</sup></a></span><a 
+ id="x1-6001f3"></a> 
+<hr class="figure"><div class="figure" 
+>
+                                                                                    
+                                                                                    
+<a 
+ id="x1-60024"></a>
+                                                                                    
+                                                                                    
+<!--l. 186--><p class="noindent" ><img 
+src="simulation-agent-wealth.png" alt="PIC"  
+width="332" height="332" >
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;4: </span><span  
+class="content">Example wealth distributions for writers and manufacturers conditioned on contract award.
+In this example, <span 
+class="cmmi-10">N </span>= 2 writers competed for a contract with a single acquirer and subsequently <span 
+class="cmmi-10">M </span>= 2
+manufacturers competed for a contract with the sole successful writer. </span></div><!--tex4ht:label?: x1-60024 -->
+                                                                                    
+                                                                                    
+<!--l. 192--><p class="indent" >   </div><hr class="endfigure">
+<!--l. 194--><p class="indent" >   We display wealth distributions of successfully matched writers and manufacturers in Figure <a 
+href="#x1-60024">4<!--tex4ht:ref: fig:simulation-agent-wealth --></a> and market
+clearing probability as a function of number of writers and manufacturers in Figure <a 
+href="#x1-60035">5<!--tex4ht:ref: fig:simulation-market-clear --></a>. Monte Carlo
+simulations of this market structure suggest that the market clears with high probability even with
+relatively low participation. For example, even with only two writers and two manufacturers
+participating in the marketplace, the market clears more than half of the time. (Under this model, a
+market with only one potential writer and 10 manufacturers clears almost half of the time &#8211; 44% &#8211;
+while an ARS market with a healthy five writers and 20 manufacturers clears a full 92% of the
+time!)
+<!--l. 198--><p class="indent" >   <hr class="figure"><div class="figure" 
+>
+                                                                                    
+                                                                                    
+<a 
+ id="x1-60035"></a>
+                                                                                    
+                                                                                    
+<!--l. 200--><p class="noindent" ><img 
+src="simulation-market-clear.png" alt="PIC"  
+width="332" height="332" >
+<br /> <div class="caption" 
+><span class="id">Figure&#x00A0;5: </span><span  
+class="content">A Monte Carlo computation of the probability of market clearing &#8211; here, meaning that the
+acquirer actually receives delivery of the acquired capability in the future when required &#8211; suggests
+that the market clears with high probability even with relatively low participation. </span></div><!--tex4ht:label?: x1-60035 -->
+                                                                                    
+                                                                                    
+<!--l. 205--><p class="indent" >   </div><hr class="endfigure">
+   <h3 class="sectionHead"><span class="titlemark">5   </span> <a 
+ id="x1-70005"></a>Generalizations and structural considerations</h3>
+<!--l. 208--><p class="noindent" >We constructed a pricing and market structure framework for acquisition risk swaps (ARS), a type of
+subordinated risk swap that eliminate the risk that an agent faces from needing to acquire a costly capability
+during an unknown future time interval. However, we made multiple simplifying assumptions that, in our
+judgement, would be eliminated in a commercial implementation of an ARS marketplace. We outline
+several unaddressed shortcomings of the present work each of which could be ground for further
+research.
+     <ul class="itemize1">
+     <li class="itemize">
+     <!--l. 212--><p class="noindent" ><span 
+class="cmti-10">Event probability distribution  </span>&#8211;  probably  the  most  glaring  assumption  we  made  for  each  of
+     our simulations was that of events starting and stopping according to independent Bernoulli
+     trials. The pricing formulae described earlier do not depend on such an assumption. In reality,
+     the probability of events for which an ARS would be appropriate to hedge, such as conflict
+     or  large-scale  business  transformation,  would  have  rich  structure  conditioned  on  complex
+     representations of world state (e.g., geopolitical factors or the competitive structure of a firm&#8217;s
+     target marketplace). Event times might also exhibit nontrivial correlation structure (e.g., if a
+     conflict starts sooner than expected it could also end sooner than expected). Such dependence
+     could be modeled using an appropriate copula structure.
+     </li>
+     <li class="itemize">
+     <!--l. 217--><p class="noindent" ><span 
+class="cmti-10">Valuation of the capability </span>&#8211; we have assumed that the acquirer can place a monetary value on
+     the capability it seeks to acquire and that the writer can assess what that monetary value is. In
+     practice each of these statements may not be true. A lower bound to the value of an additional unit
+     of a capability could be the sum of the marginal costs of each of its components (including labor
+     and properly amortized operational expenditures) but this bound may be very weak. Estimating
+     the acquirer&#8217;s value function would probably be a nontrivial task for both the writer and the
+     acquirer, but could be facilitated by advances in reinforcement learning <span class="cite">[<a 
+href="#Xschaul2015universal">SHGS15</a>]</span>. The acquirer
+     may face the risk that it systematically understates its true valuation of the capability (e.g., by
+     valuing it at only the sum of its marginal costs of production plus a constant value that does not
+     incorporate the discounted benefits of future use) and consequently faces lower market supply
+     than expected.<span class="footnote-mark"><a 
+href="main5.html#fn4x0"><sup class="textsuperscript">4</sup></a></span><a 
+ id="x1-7001f4"></a> 
+     </li>
+     <li class="itemize">
+     <!--l. 224--><p class="noindent" ><span 
+class="cmti-10">Interest rate dynamics  </span>&#8211; interest rates may co-vary substantially with the probability of the
+     conditioning event. For example, interest rates and the capability to be acquired may both be
+     affected by geopolitical dynamics.
+     </li>
+     <li class="itemize">
+     <!--l. 226--><p class="noindent" ><span 
+class="cmti-10">Market structure </span>&#8211; we have outlined one market structure, in addition to the naive one defined
+     by the mechanics of the ARS contract, that could create additional market efficiencies in terms
+     of hedging risk and decoupling firms&#8217; comparative advantages. However, there are likely other
+     market structures, depending on operational context, that could incentivize participation by
+     different  firm  types  (e.g.,  different  production  capacities,  risk  preferences,  or  investing  time
+     horizons). In some applications, markets could need to place constraints on writers and creators
+     (e.g., based on capitalization or security requirements).
+                                                                                    
+                                                                                    
+     </li>
+     <li class="itemize">
+     <!--l. 227--><p class="noindent" ><span 
+class="cmti-10">Price discovery </span>&#8211; the nature of the acquired capability would likely dictate the method by which
+     its price is discovered. Non-exquisite, low-marginal cost capabilities (e.g., commodity drone parts)
+     could be created by many parties, leading to very liquid markets; other capabilities (e.g., bespoke
+     defense manufacturing) might exhibit complexity such that the market for capability creators,
+     at time of the ARS&#8217;s inception, is much less liquid. The price signal created by the ARS could
+     facilitate capital investment in that market if the timescale on which the ARS writers&#8217; market
+     expects the capability to be needed, <span 
+class="cmmi-10">E</span><sub><span 
+class="cmmi-7">t</span><span 
+class="cmsy-7">~</span><span 
+class="cmmi-7">p</span><span 
+class="cmr-7">(</span><span 
+class="cmmi-7">t</span><span 
+class="cmr-7">)</span></sub>[<span 
+class="cmmi-10">t</span>], is compatible with the requried investing timeline
+     (e.g., timeline required to build a manfacturing facility).
+     </li></ul>
+<!--l. 232--><p class="noindent" >
+   <h4 class="likesubsectionHead"><a 
+ id="x1-80005"></a>Acknowledgements</h4>
+<!--l. 233--><p class="noindent" >The views stated in this paper are those of the author and do not necessarily represent the position of the
+U.S.&#x00A0;Government or the Department of Defense. Distribution Statement A: approved for public release,
+distribution is unlimited.
+<!--l. 1--><p class="noindent" >
+   <h3 class="likesectionHead"><a 
+ id="x1-90005"></a>References</h3>
+<!--l. 1--><p class="noindent" >
+         <div class="thebibliography">
+         <p class="bibitem" ><span class="biblabel">
+ [BK84]  <span class="bibsp">&#x00A0;&#x00A0;&#x00A0;</span></span><a 
+ id="Xbenjamin1984war"></a>Daniel&#x00A0;K Benjamin and Levis&#x00A0;A Kochin.  War, Prices, and Interest Rates: A Martial
+         Solution to Gibson&#8217;s Paradox. 1984.
+         </p>
+         <p class="bibitem" ><span class="biblabel">
+ [SHGS15]<span class="bibsp">&#x00A0;&#x00A0;&#x00A0;</span></span><a 
+ id="Xschaul2015universal"></a>Tom Schaul, Daniel Horgan, Karol Gregor, and David Silver.  Universal value function
+         approximators. In <span 
+class="cmti-10">International conference on machine learning</span>, pages 1312&#8211;1320. PMLR,
+         2015.
+</p>
+         </div>
+    
+</body></html> 
+
+                                                                                    
+
+

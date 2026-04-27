@@ -1,0 +1,349 @@
+<h2 id="first-example">First example</h2>
+<p>Here’s some data. The underlying generating process is a random walk.</p>
+<pre><code>t1 = 252
+n = 3
+n_pred = int(0.5 * t1)
+loc = torch.randn((3, 1)) * 0.1
+scale = torch.randn((3, 1)).exp()
+data = 10.0 + (loc + scale * torch.randn((n, t1 + n_pred,))).cumsum(dim=-1)
+train_data = data[:, :t1]
+test_data = data[:, t1:]
+
+for k in range(n):
+    plt.plot(range(t1), train_data[k], color=&#39;blue&#39;)
+    plt.plot(range(t1, t1 + n_pred), test_data[k], color=&#39;red&#39;)</code></pre>
+<figure>
+<img src="plots/random_walk_data.png" alt="" /><figcaption>some random walks</figcaption>
+</figure>
+<p>In <code>stsb3</code>, expressing a random walk model is pretty easy.</p>
+<pre><code>dgp = stsb3.sts.RandomWalk(
+    size=n,
+    name=&quot;rw&quot;,
+    t1=t1,
+)</code></pre>
+<p>Under the hood, priors are automatically generated for you if you don’t specify them. We’ll get to that later. <code>stsb3</code> is deeply integrated with <code>torch</code> and <code>pyro</code>. For example, we can introduce a data likelihood function that exposes a built-in <code>fit</code> method that wraps <code>pyro</code>’s variational inference and autoguide capabilities.</p>
+<pre><code>model = stsb3.sts.GaussianNoise(
+    dgp,
+    name=&quot;likelihood&quot;,
+    data=train_data,
+    size=n,
+    scale=torch.tensor(0.1)
+)
+prior = model.prior_predictive(nsamples=100)
+# you can pass through lots of arguments to pyro inference -- or not! -- more on that later
+model.fit(method_kwargs=dict(niter=4000), verbosity=2e-3)
+posterior = model.posterior_predictive(nsamples=100)
+
+output$ On iteration 0, loss = 312638.2765661088
+On iteration 500, loss = 8518.322829425453
+On iteration 1000, loss = 4281.812141907593
+On iteration 1500, loss = 3562.282855011227
+On iteration 2000, loss = 2092.1784127041224
+On iteration 2500, loss = 3279.810886447865
+On iteration 3000, loss = 1533.6185196929034
+On iteration 3500, loss = 703.8973624693259</code></pre>
+<p>After training, we can inspect the prior and posterior predictive empirical densities of what we’ve modeled as a latent random walk:</p>
+<figure>
+<img src="plots/random_walk_prior_posterior.png" alt="" /><figcaption>prior updates to posterior</figcaption>
+</figure>
+<p>One of the objectives of <code>stsb3</code> is to enable white-box time series modeling that still allows for performant forecasting. Let’s see how well we learned the model parameters as measured by forecast performance.</p>
+<pre><code># forecast the latent state forward
+posterior_forecast = stsb3.sts.forecast(
+    dgp,
+    posterior,
+    Nt=n_pred,
+    nsamples=100
+)</code></pre>
+<figure>
+<img src="plots/random_walk_forecast.png" alt="" /><figcaption>forecast looks ok</figcaption>
+</figure>
+<h2 id="whats-the-big-deal">What’s the big deal?</h2>
+<p>Everything below is a valid <code>stsb3</code> model.</p>
+<pre><code># autoregressive model of order 1
+ar1 = stsb3.sts.AR1(t1=t1, size=n, name=&quot;ar1&quot;)
+
+# semi-local linear trend
+latent_loc =  stsb3.sts.AR1(t1=t1, size=n, name=&quot;latent_loc&quot;)
+sllt = stsb3.sts.RandomWalk(t1=t1, size=n, name=&quot;sllt&quot;, loc=latent_loc)
+
+# seasonal global trend model
+n_seasons = 7
+s = stsb3.sts.DiscreteSeasonal(name=&quot;s&quot;, size=n, t1=t1, n_seasons=n_seasons,)
+gt = stsb3.sts.GlobalTrend(t1=t1, size=n, name=&quot;global trend&quot;, beta=dist.Normal(0.05, 1e-2).expand((n,)))
+sgt = s + gt + ar1
+
+# stochastic volatility asset price
+dt = torch.tensor(1.0 / t1)  # normalize to years
+log_vol = stsb3.sts.CCSDE(t1=t1, size=n, dt=dt,
+            loc=dist.Normal(0.0, 1.0).expand((n,)),
+            ic=dist.Normal(0.0, 0.1).expand((n,)))
+log_asset_price = stsb3.sts.CCSDE(t1=t1, size=n, dt=dt, scale=log_vol.exp())</code></pre>
+<figure>
+<img src="plots/mini_zoo.png" alt="" /><figcaption>little zoo of time series</figcaption>
+</figure>
+<p>Every one of these models can be sampled from, as we do above, and can be confronted with data by wrapping it in an <code>stsb3.sts.NoiseBlock</code> instance, or by embedding the model within a more general <code>pyro</code> stochastic function (again more on that later). Underneath, <code>stsb3</code> implements a context-sensitive model grammar that allows for arbitrary addition and composition of models as long as certain parameter space restrictions are met. (The grammar is detailed in <a href="https://arxiv.org/abs/2009.06865">a paper</a>, if you care.) The point is that <code>stsb3</code> allows you to easily construct expressive time series models that are always interpretable by definition.</p>
+<p>Right now, the following primitive blocks are implemented:</p>
+<ul>
+<li><code>AR1</code>: autoregressive model of order 1</li>
+<li><code>CCSDE</code>: constant-coefficient stochastic differential equation discretized with the Euler-Maruyama method</li>
+<li><code>DiscreteSeasonal</code>: discrete repeating seasonailty</li>
+<li><code>GlobalTrend</code>: a linear model in time</li>
+<li><code>MA1</code>: a moving average model of order 1</li>
+<li><code>RandomWalk</code>: a biased random walk</li>
+<li><code>SmoothSeasonal</code>: a sinusoidal model</li>
+</ul>
+<p>We plan to implement many more primitive blocks. Even with this small set of primitives, the user can build very expressive models (e.g., see the figure above – and those are only two layers deep!)</p>
+<p>In addition the following <code>NoiseBlock</code> subclasses are implemented:</p>
+<ul>
+<li><code>GaussianNoise</code>: observation noise that follows a normal distribution</li>
+<li><code>PoissonNoise</code>: observation noise that follows a Poisson distribution</li>
+<li><code>DiscriminativeGaussianNoise</code>: a discriminative dynamic linear regression model with observation noise that follows a normal distribution</li>
+</ul>
+<p>In addition to having most of the functionality of primitive blocks, <code>NoiseBlock</code> subclasses also expose wrappers to <code>pyro</code>’s inference capabilities and allow the user to confront their model with evidence. In contrast, primitive blocks are designed to be used only as latent blocks.</p>
+<h2 id="pyro-integration"><code>pyro</code> integration</h2>
+<p>(N.b.: this entire section assumes passing familiarity with <a href="pyro.ai">pyro</a>.) <code>stsb3</code> is built using <code>torch</code> and <code>pyro</code>, but it also integrates with them at a deep level instead of “just” being a library that operates on top of them. Here’s a slightly nontrivial <code>pyro</code> model with a single latent time series defined by an <code>stsb3</code> block:</p>
+<pre><code>latent_seasons = stsb3.sts.DiscreteSeasonal(
+    t1=t1,
+    size=n,
+    n_seasons=28,
+    name=&quot;seasonality&quot;
+)
+stsb3.util.set_cache_mode(latent_seasons, True)
+
+
+def pyro_model(data1, data2, dgp,):
+    latent_1 = dgp.softplus().model()
+    latent_2 = dgp.model()
+    lik1 = pyro.sample(
+        &quot;lik1&quot;,
+        dist.Poisson(latent_1),
+        obs=data1,
+    )
+    sigma = pyro.sample(&quot;sigma&quot;, dist.Exponential(1.0).expand((n,)))
+    lik2 = pyro.sample(
+        &quot;lik2&quot;,
+        dist.Normal(latent_2, sigma),
+        obs=data2
+    )
+    stsb3.util.clear_cache(dgp)
+    return lik1, lik2</code></pre>
+<p>There are a few things going on in this model that we haven’t explicitly encountered before. First, we apply a nonlinear transformation explicitly to our block. <code>stsb3</code> supports a few common nonlinear transformations of sample paths, such as <code>exp</code>, <code>softplus</code>, <code>cos</code>, etc. Second, there’s some funny business with <code>util.set_cache_mode</code> and <code>util.clear_cache</code> that bears explaining. In our <code>pyro_model</code> we call <code>.model(...)</code> on our block twice. The interpretation of this is <em>ex ante</em> ambiguous – if you tried this with <code>pyro</code>, you’d get an error saying something to the effect that you’ve tried to add the same random address to your trace twice. This is normally how <code>stsb3</code> works too, but if you <em>want</em> to call a single block multiple times during a single execution, you can do so by turning on memoization using <code>util.set_cache_mode</code>. On the first call to the block, or when the cache is empty, the model is run as normal and a trace is recorded, but any subsequent calls just use the recorded execution trace. This is why we’re explicitly clearing the cache at the end of each call to our <code>pyro_model</code> function.</p>
+<p>Anyhow, <code>pyro_model</code> is just, well, a pyro model – so we can do anything with it that we’d normally do with a pyro model:</p>
+<pre><code>data_1, data_2 = pyro_model(None, None, latent_seasons)
+trace = pyro.poutine.trace(pyro_model).get_trace(None, None, latent_seasons)
+
+print(trace)
+
+output$ odict_keys([&#39;_INPUT&#39;, &#39;seasonality-seasons&#39;, &#39;dynamic/seasonality-generated&#39;, &#39;lik1&#39;, &#39;sigma&#39;, &#39;lik2&#39;, &#39;_RETURN&#39;])</code></pre>
+<figure>
+<img src="plots/pyro_model_poisson_normal.png" alt="" /><figcaption>pyro model output</figcaption>
+</figure>
+<p>The block has a few components that we didn’t explicitly define, and they’re named automatically for us. We’ll talk about that more in the next section.</p>
+<p>As we’ve seen, <code>stsb3</code> blocks are random objects a la <a href="https://www.cs.tufts.edu/~nr/cs257/archive/avi-pfeffer/figaro.pdf">Figaro</a>. Defining them within <code>pyro</code> models enables them to have stochastic attributes. Consider this simple example:</p>
+<pre><code>def var_length_ts_model(mean_timesteps=10):
+    timesteps = pyro.sample(
+        &quot;timesteps&quot;,
+        dist.Poisson(mean_timesteps)
+    )
+    dgp = stsb3.sts.RandomWalk(t1=int(timesteps), name=&quot;dgp&quot;)
+    dgp.has_fast_mode = False
+    obs_scale = pyro.param(&quot;obs_scale&quot;, torch.tensor(1.0))
+    obs = pyro.sample(
+        &quot;obs&quot;,
+        dist.Normal(dgp(), obs_scale)
+    )
+    return obs</code></pre>
+<p>This kind of model might be useful to infer the characteristic stopping time (here named <code>timesteps</code>) of a system.</p>
+<figure>
+<img src="plots/random_timesteps.png" alt="" /><figcaption>variable length random walks</figcaption>
+</figure>
+<p>Tracing the model a few times lets us confirm that it has an open-universe structure.</p>
+<pre><code>Trace #1
+odict_keys([&#39;_INPUT&#39;, &#39;timesteps&#39;, &#39;obs_scale&#39;, &#39;dgp-loc&#39;, &#39;dgp-scale&#39;, &#39;dgp-ic&#39;, &#39;dynamic/dgp-noise-1&#39;, &#39;dynamic/dgp-noise-2&#39;, &#39;dynamic/dgp-noise-3&#39;, &#39;dynamic/dgp-noise-4&#39;, &#39;dynamic/dgp-noise-5&#39;, &#39;dynamic/dgp-noise-6&#39;, &#39;dynamic/dgp-noise-7&#39;, &#39;dynamic/dgp-noise-8&#39;, &#39;dynamic/dgp-noise-9&#39;, &#39;dynamic/dgp-noise-10&#39;, &#39;dynamic/dgp-noise-11&#39;, &#39;dynamic/dgp-noise-12&#39;, &#39;dynamic/dgp-noise-13&#39;, &#39;dynamic/dgp-noise-14&#39;, &#39;dynamic/dgp-generated&#39;, &#39;obs&#39;, &#39;_RETURN&#39;])
+
+Trace #2
+odict_keys([&#39;_INPUT&#39;, &#39;timesteps&#39;, &#39;obs_scale&#39;, &#39;dgp-loc&#39;, &#39;dgp-scale&#39;, &#39;dgp-ic&#39;, &#39;dynamic/dgp-noise-1&#39;, &#39;dynamic/dgp-noise-2&#39;, &#39;dynamic/dgp-noise-3&#39;, &#39;dynamic/dgp-noise-4&#39;, &#39;dynamic/dgp-noise-5&#39;, &#39;dynamic/dgp-noise-6&#39;, &#39;dynamic/dgp-noise-7&#39;, &#39;dynamic/dgp-noise-8&#39;, &#39;dynamic/dgp-noise-9&#39;, &#39;dynamic/dgp-noise-10&#39;, &#39;dynamic/dgp-noise-11&#39;, &#39;dynamic/dgp-generated&#39;, &#39;obs&#39;, &#39;_RETURN&#39;])
+
+Trace #3
+odict_keys([&#39;_INPUT&#39;, &#39;timesteps&#39;, &#39;obs_scale&#39;, &#39;dgp-loc&#39;, &#39;dgp-scale&#39;, &#39;dgp-ic&#39;, &#39;dynamic/dgp-noise-1&#39;, &#39;dynamic/dgp-noise-2&#39;, &#39;dynamic/dgp-noise-3&#39;, &#39;dynamic/dgp-noise-4&#39;, &#39;dynamic/dgp-noise-5&#39;, &#39;dynamic/dgp-noise-6&#39;, &#39;dynamic/dgp-noise-7&#39;, &#39;dynamic/dgp-noise-8&#39;, &#39;dynamic/dgp-noise-9&#39;, &#39;dynamic/dgp-noise-10&#39;, &#39;dynamic/dgp-generated&#39;, &#39;obs&#39;, &#39;_RETURN&#39;])
+
+Trace #4
+odict_keys([&#39;_INPUT&#39;, &#39;timesteps&#39;, &#39;obs_scale&#39;, &#39;dgp-loc&#39;, &#39;dgp-scale&#39;, &#39;dgp-ic&#39;, &#39;dynamic/dgp-noise-1&#39;, &#39;dynamic/dgp-noise-2&#39;, &#39;dynamic/dgp-noise-3&#39;, &#39;dynamic/dgp-noise-4&#39;, &#39;dynamic/dgp-noise-5&#39;, &#39;dynamic/dgp-noise-6&#39;, &#39;dynamic/dgp-noise-7&#39;, &#39;dynamic/dgp-noise-8&#39;, &#39;dynamic/dgp-noise-9&#39;, &#39;dynamic/dgp-generated&#39;, &#39;obs&#39;, &#39;_RETURN&#39;])
+</code></pre>
+<h2 id="block-semantics-and-mechanics">Block semantics and mechanics</h2>
+<p><code>stsb3</code> is very opinionated about how you should construct structural time series models; the objective isn’t to be overly restrictive, but rather just restrictive enough that model complexity doesnt turn into model complication or model unwieldiness.</p>
+<h3 id="address-structure">Address structure</h3>
+<p>The first set of restrictions is associated with how <code>stsb3</code> tracks randomness. In addition to all the wonderful low-level <code>pyro</code> machinery, <code>stsb3</code> does its own tracing of randomness at the <code>Block</code> level. All addresses of block random variables follow a semantic naming convention that looks like either <code>y-z</code> or <code>x/y-z</code>.</p>
+<ul>
+<li><code>y</code>: the name of the block – this is what you’d pass into the constructor of the block via the keyword argument <code>name=&lt;your name here&gt;</code>.</li>
+<li><code>z</code>: the functionality of the random variable. Examples include <code>loc</code>, <code>scale</code>, <code>ic</code>, <code>seasons</code>,…</li>
+<li><code>x</code>: if it exists, this denotes special structural interpretation to the random variable. For example, <code>dynamic</code> denotes that there’s one of these kinds of random variables for each <code>t</code> in the interval <code>[t0, t1]</code>.</li>
+</ul>
+<p>Thankfully, you usually don’t have to think about these addresses at all. Unless you’re writing your own <code>Block</code> subclass (discussed in the next section), all of these addresses will be automatically generated for you. Said differently, if you’re using any of the default blocks, you do not have any control over what the internal random variables are named.</p>
+<p>This address structure simplifies a lot of reasoning about complex structural time series models. Here’s an important example. Suppose you’ve performed inference, and found an empirical posterior density of all model rvs – now it’s time to forecast. A posterior forecast is different from a draw from the posterior predictive; it’s equivalent to drawing values for all non-time-dependent random variables from the posterior and drawing values for all time-<strong>dependent</strong> variables from the fast-forwarded prior (i.e., the prior where <code>t -&gt; t + (t1 - t0)</code>). This isn’t easy to do in an arbitrarily complex model, unless you have a semantic address structure like the one <code>stsb3</code> implements. Then it’s as easy as checking if <code>x = dynamic</code> in the address structure, and if so, drawing from the fast-forwarded prior.</p>
+<p>The <code>z</code> component of addresses aren’t any old string. Rather, they’re defined in <code>stsb3.constants</code> and are intended for cross-block use. They have semantic meaning; seeing <code>z = loc</code> tells you something about what the address <code>my_block-loc</code> is <em>doing</em> inside the block named <code>my_block</code>. Here are all of the currently-defined <code>z</code> components:</p>
+<pre><code>ic, obs, loc, scale, noise, dt, alpha, beta, plate, period, phase, amplitude,
+lengthscale, seasons</code></pre>
+<p>You can add a new address component using <code>core.register_address_component</code>, with signature <code>core.register_address_component(name, expand, domain=None)</code>. For example, calling</p>
+<pre><code>core.register_address_component(
+    &quot;my_component&quot;,
+    True,
+    domain=constants.real
+)</code></pre>
+<p>adds a new <code>z</code> address component <code>my_component</code> that can be expanded into another block and whose domain is all real numbers. Currently defined domains are <code>constants.real</code>, <code>constants.half_line</code> (corresponding to the interval (0,oo)) and <code>constants.zero_one</code>. It’s necessary to state whether or not the address can be expanded into a block in order for structure search algorithms (still under development) to know if they can expand the site corresponding to this address. Most users will never interact with <code>core.register_address_component</code> because it’s only used when you’re defining a new block “by hand” rather than using the built-in block construction capabilities.</p>
+<h3 id="block-grammar">Block grammar</h3>
+<p>Valid <code>stsb3</code> models are sentences in the language generated by the context-sensitive grammar <code>G = (V, E, R, S)</code>, where <code>V = {S, p}</code>, <code>E = {f, s}</code>, and <code>R</code> consists of the production rules</p>
+<pre><code>S -&gt; f(p) | f(p) + S
+p -&gt; s | (S | p, ..., S | p)</code></pre>
+<p>This means that valid models can be constructed by “adding” together functions of <code>p</code>s, by expanding <code>p</code>s into more models, or by letting <code>p</code>s become terminal nodes <code>s</code>, which for us are a random-variable-like objects (e.g., <code>pyro.distributions</code> objects or <code>torch.Tensor</code>s, and probably in a later release <code>pyro</code> generative functions). “Adding” is in quotes because it doesn’t have to be the normal binary addition operation (although it usually is), but rather a symmetric group operation (like addition on real numbers or multiplication on positive reals). <code>stsb3</code> doesn’t provide a static check to ensure that the model you’ve constructed is a valid sentence in the language generated by this grammar, but if you can call <code>.model(...)</code> on it and it doesn’t throw an error, then it’s a valid sentence.</p>
+<p>An <a href="https://davidrushingdewhurst.com/stsb2/">earlier version</a> of this library (built using only <code>numpy</code> and <code>scipy</code>, and not recommended for production use) also included changepoints in the model grammar. This is no longer supported for two reasons. First, this necessarily makes the models non-generative. One of <code>stsb3</code>’s primary objectives is to ensure that all models have an explicit generative story and aren’t just some black-box stochastic process. Second, the task of forecasting seriously lowers the utility of a changepoint model, and one of <code>stsb3</code>’s other primary objectives is to enable white-box <em>forecasting</em>, not just modeling. It doesn’t make sense to talk about forecasting a changepoint model into the future; if you want a model that switches between different behaviors depending on a latent time series, then you just want a switching model. It’s easy to implement that yourself in <code>stsb3</code> – we’ll demonstrate it in the next section.</p>
+<h2 id="byob-build-your-own-block">BYOB (build-your-own-block)</h2>
+<p>If the existing set of building blocks isn’t enough for you, you can take two approaches: 1) you can pester us to implement more; 2) you can do it yourself. We recommend the latter choice. In this section we’ll outline different methods for implementing a <code>Block</code> or <code>NoiseBlock</code> subclass, and in the process detail more of <code>stsb3</code>’s internal structure.</p>
+<h3 id="block-structure">Block structure</h3>
+<p>All blocks inherit from <code>stsb3.core.Block</code> either directly or via <code>stsb3.core.NoiseBlock</code>. The only methods that a specific implementation must override are <code>__init__</code> and <code>_model</code>. The heart of the specific implementation is <code>_model</code>, which describes the actual data generating process of the block. (This method isn’t called <code>model</code> because that’s a <code>Block</code> method that handles logic related to memoization and other internal interpretation details.) Here is the actual <code>__init__</code> method for <code>DiscreteSeasonal</code>:</p>
+<pre><code>def __init__(
+        self,
+        name=None,
+        t0=0,
+        t1=2,
+        size=1,
+        n_seasons=2,
+        seasons=None,
+    ):
+        super().__init__(
+            name=name,
+            t0=t0,
+            t1=t1,
+            size=size,
+        )
+        assert n_seasons &gt;= 2
+        self.n_seasons = n_seasons
+        setattr(
+            self,
+            constants.seasons,
+            seasons
+            or dist.Normal(0.0, 1.0).expand(
+                (
+                    size,
+                    n_seasons,
+                )
+            ),
+        )
+        self._maybe_add_blocks(getattr(self, constants.seasons))</code></pre>
+<p>The only things to note here are how we deal with the random object <code>seasons</code>. First, we have to respect <code>stsb3</code>’s naming conventions (well, okay, you don’t <em>have</em> to, but it’s highly recommended), so we <code>setattr</code> it using <code>constants.seasons</code> instead of the string <code>"seasons"</code>. This way, if we later decided to change <code>constants.seasons</code> to some other string, that change would propagate to this implementation and we wouldn’t even notice. Second, we call <code>_maybe_add_blocks</code> on the newly-defined attribute with address component <code>constants.seasons</code>. This method checks to see if the attribute subclasses block. If it does, then the attribute is added to the block-level compute graph:</p>
+<pre><code>seasons = stsb3.sts.MA1(t1=t1, size=n, name=&quot;ma&quot;)
+dgp = stsb3.sts.DiscreteSeasonal(
+    t1=t1,
+    size=n,
+    name=&quot;s&quot;,
+    n_seasons=len(seasons),
+    seasons=seasons
+)
+stsb3.util.get_graph_from_root(dgp)
+
+output$ {&#39;s&#39;: [&#39;ma&#39;], &#39;ma&#39;: []}</code></pre>
+<p>Here’s <code>DiscreteSeasonal</code>’s <code>_model</code> method:</p>
+<pre><code>def _model(
+        self,
+    ):
+        seasons = core._obj_name_to_definite(self, constants.seasons, season=True)
+        t = torch.linspace(self.t0, self.t1, self.t1 - self.t0)
+        which_seasons = torch.remainder(t, self.n_seasons)
+        these_seasons = seasons[..., which_seasons.type(torch.LongTensor)]
+        with autoname.scope(prefix=constants.dynamic):
+            path = pyro.deterministic(
+                f&quot;{self.name}-{constants.generated}&quot;, these_seasons
+            )
+        return path</code></pre>
+<p>The actual functionality of this should be pretty clear. The only <code>stsb3</code>-specific aspects are</p>
+<ul>
+<li>We call <code>core._obj_name_to_definite</code> to interpret what is meant by the object <code>getattr(self, constants.seasons)</code>. The return value of this function, <code>seasons</code>, is just a <code>torch.Tensor</code> of shape <code>(self.size, self.t1 - self.t0)</code>. How <code>getattr(self, constants.seasons)</code> becomes this tensor is decided by <code>_obj_name_to_definite</code>.</li>
+<li>We use <code>pyro</code>’s excellent <code>contrib.autoname</code> to ensure that all dynamic rvs (rvs whose last dimension is equal to <code>self.t1 - self.t0</code>) have <code>x = dynamic</code> in their address.</li>
+</ul>
+<p>So, to implement a new block, you could just subclass <code>stsb3.core.Block</code> and implement your own constructor and <code>_model</code> method. Or, you could try…</p>
+<h3 id="using-the-block-construction-tools">Using the block construction tools</h3>
+<p><code>stsb3</code> doesn’t implement a random <a href="https://en.wikipedia.org/wiki/Chirp">chirp</a> model,and we really want one for our application. Because we’re lazy, we don’t want to actually write a class ourselves; we’d rather just implement a stochastic function in <code>pyro</code> and let <code>stsb3</code> figure out the rest. Here’s how we’d do this:</p>
+<ol type="1">
+<li><p>Create a parameter dictionary. For a chirp model, that might look something like <code>params = {             "alpha": {                 "expand": True,                 "domain": constants.real,                 "default": dist.Normal(0.0, 1.0),             },             "beta": {                 "expand": True,                 "domain": constants.real,                 "default": dist.Normal(0.0, 1.0),             },             "gamma": {                 "expand": True,                 "domain": constants.real,                 "default": dist.Normal(0.0, 1.0),             },         }</code> Our chirp model will look like <code>z_t = cos(alpha + beta * t + gamma * t ** 2)</code>.</p></li>
+<li><p>Write a <code>pyro</code> function. This function has to take in some object (that we’ll creativey call <code>x</code>) that has appropriately-named attributes. In this case, the attributes will be named <code>"alpha"</code>, <code>"beta"</code> and <code>"gamma"</code>.</p>
+<pre><code>def chirp_model(x):
+    alpha, beta, gamma = core.name_to_definite(x, &quot;alpha&quot;, &quot;beta&quot;, &quot;gamma&quot;)
+
+    with autoname.scope(prefix=constants.dynamic):
+        t = torch.linspace(x.t0, x.t1, x.t1 - x.t0)
+        path = pyro.deterministic(
+            x.name + &quot;-&quot; + constants.generated,
+            (alpha + t * beta + t.pow(2) * gamma).cos(),
+        )
+    return path</code></pre></li>
+<li><p>Make the block. We want the block to be named <code>stsb3.sts.Chirp</code>.</p>
+<pre><code>stsb3.sts.register_block(
+    &quot;Chirp&quot;,
+    params,
+    chirp_model,
+)</code></pre>
+<p>That’s it. Now you can call and use this block as you would any other instance of a subclass of <code>Block</code>. See <code>test_composition</code> in <code>test_sts.py</code> for an example of this block in action.</p></li>
+</ol>
+<h3 id="example-the-switching-model">Example: the switching model</h3>
+<p>Earlier we promised to implement a switching model. Let’s do that. The model itself is really simple – we’ll outsource the actual definition of the component time series <code>x</code>, <code>y</code>, and <code>z</code> to other blocks. The switching mechanism is defined in pseudocode thus:</p>
+<pre><code>for t in 1:T
+    if x[t] &lt; 0
+        dgp[t] = y[t]
+    else
+        dgp[t] = z[t]
+    end
+end</code></pre>
+<p>Let’s see how to implement this using the block construction tools. First, we define the parameters of the block:</p>
+<pre><code>params = {
+    &quot;switch&quot;: {
+        &quot;expand&quot;: True,
+        &quot;domain&quot;: constants.real,
+        &quot;default&quot;: dist.Normal(0.0, 1.0)
+    },
+    &quot;dgp1&quot;: {
+        &quot;expand&quot;: True,
+        &quot;domain&quot;: constants.real,
+        &quot;default&quot;: None
+    },
+    &quot;dgp2&quot;: {
+        &quot;expand&quot;: True,
+        &quot;domain&quot;: constants.real,
+        &quot;default&quot;: None
+    }
+}</code></pre>
+<p>Then we implement the data generating process.</p>
+<pre><code>def switching_model(x):
+    (switch,) = core.name_to_definite(x, &quot;switch&quot;)
+    mask = (switch &lt; 0).type(torch.BoolTensor)
+    with pyro.poutine.mask(mask=mask):
+        (dgp1,) = core.name_to_definite(x, &quot;dgp1&quot;)
+    with pyro.poutine.mask(mask=~mask):
+        (dgp2,) = core.name_to_definite(x, &quot;dgp2&quot;)
+    with autoname.scope(prefix=constants.dynamic):
+        path = pyro.deterministic(
+            x.name + &quot;-&quot; + constants.generated,
+            torch.where(
+                switch &lt; 0,
+                dgp1,
+                dgp2
+            )
+        )
+    return path</code></pre>
+<p>Finally, we construct the block and visualize some sample paths.</p>
+<pre><code>stsb3.sts.register_block(&quot;Switch&quot;, params, switching_model)
+switch = stsb3.sts.AR1(t1=t1, size=n, name=&quot;switcher&quot;, beta=torch.tensor(0.75))
+rw = stsb3.sts.RandomWalk(t1=t1, size=n, name=&quot;dgp1&quot;)
+gt = stsb3.sts.GlobalTrend(t1=t1, size=n, name=&quot;dgp2&quot;)
+switching_model = stsb3.sts.Switch(
+    t1=t1,
+    size=n,
+    switch=switch,
+    dgp1=rw,
+    dgp2=gt,
+)</code></pre>
+<figure>
+<img src="plots/switching_model_data.png" alt="" /><figcaption>draws from a switching process</figcaption>
+</figure>
+<p>We can comfort ourselves that all the desired <code>pyro</code> functionality is still there:</p>
+<pre><code>trace = pyro.poutine.trace(switching_model).get_trace()
+assert trace.nodes[&quot;dgp1-&quot; + constants.loc][&quot;mask&quot;] is not None</code></pre>

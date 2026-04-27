@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | prob/lppl/deep-dive</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/stsb3.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+</head>
+<body>
+
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="../index.html">up</a></li>
+              <li><a href="../../../econ/index.html">geoeconomics</a></li>
+              <li><a href="../../index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+
+<h1 id="low-resource-universal-stochastic-computation-with-lppl">Low-resource universal stochastic computation with <code>lppl</code></h1>
+<p>lppl is a library that aims to give the ordinary C++ developer the ability to embed probabilistic code, and perform inference over that code, in a way that is extraordinarily low overhead while maintaining the maximal expressiveness of something like <a href="https://pyro.ai">Pyro</a>. The lppl vision is some convex combination of the following scenarios: (a) many, possibly hundreds, of small probabilistic programs executing simultaneously on an ordinary commodity laptop; or (b) between one and a few (say, 10) probabilistic programs executing in a very resource constrained environment (e.g., a dashcam or other microprocessor); and in either scenario doing inference over models that are useful in <strong>making complex decisions</strong>, not solving simple supervised learning problems or generating streams of text.</p>
+<h2 id="how-it-works">How it works</h2>
+<p>The core modeling API is disarmingly simple and follows textbook implementations closely. To state that a random variable <span class="math inline"><em>x</em></span> is sampled from a particular distribution (say, <span class="math inline"><em>N</em><em>o</em><em>r</em><em>m</em><em>a</em><em>l</em>(<em>μ</em>, <em>σ</em>)</span>), you’d use a <a href="https://davidrushingdewhurst.com/prob/lppl/docs/record_8hpp_a2ae32ceac91100ce3dd882bc5ccf82f3.html#a2ae32ceac91100ce3dd882bc5ccf82f3">sample</a> statement:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">auto</span> x = sample(r, <span class="st">&quot;x&quot;</span>, Normal(mu, sigma), rng);</span></code></pre></div>
+<p>where <code>RNG</code> meets the pseudorandom number engine <a href="https://cplusplus.com/reference/random/">interface</a>. Likewise, to state that you observe a particular <code>value</code> that you are modeling as <span class="math inline"><em>N</em><em>o</em><em>r</em><em>m</em><em>a</em><em>l</em>(<em>μ</em>, <em>σ</em>)</span>, you’d use an <a href="https://davidrushingdewhurst.com/prob/lppl/docs/record_8hpp_a18395b3f9b3e467fffd05daf0be33b5c.html#a18395b3f9b3e467fffd05daf0be33b5c">observe</a> statement:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">auto</span> obs = observe(r, <span class="st">&quot;value&quot;</span>, Normal(mu, sigma), value);</span></code></pre></div>
+<p>Note that <code>x</code> and <code>obs</code> are ordinary C++ values – in this case, each would be a double. To construct a probabilistic program, you just write a pure C++ function that uses <code>sample</code> and <code>observe</code> statements. There’s nothing else to it. (At least, there’s nothing else to it programmatically; knowing how to construct a useful generative probabilistic model of a process is an entirely different question and wholly out of scope for this document.) Do, however, note the <strong>pure</strong> qualifier – the probabilistic program should act like a pure function, as it will be executed potentially many times during inference with no consideration of any side effects it might have.</p>
+<p>Once you have a probabilistic program, you probably want to do inference over it. Inference methods do expect probabilistic programs to meet a particular API:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">typename</span> I, <span class="kw">typename</span> O, <span class="kw">typename</span>... Ts&gt;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="kw">using</span> <span class="dt">pp_t</span> = <span class="bu">std::</span>function&lt;O(<span class="dt">record_t</span>&lt;DTypes&lt;Ts...&gt;&gt;&amp;, I)&gt;;</span></code></pre></div>
+<p>but, of course, you can write a lambda to match the interface of whatever function you’ve written to the <code>pp_t</code> interface. lppl decomposes inference into two orthogonal components: (a) generating samples from the posterior probability distribution; and (b) constructing a view of the posterior. Decomposing inference into these components leads naturally to computation of query results using online algorithms – first you draw a sample from the posterior, then you update your online view, repeat. So, to do inference, you need to specify both an inference algorithm you want to use to draw samples from the posterior and a queryer you want to use to construct a view. By default, any inference algorithm can be used with any queryer (the only time that wouldn’t be true is if you specialized a template for some reason). For example, supposing our probabilistic program were called <code>f</code>, we might write</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">auto</span> q = weighted_mean&lt;<span class="dt">double</span>, Normal, Gamma&gt;(<span class="st">&quot;scale&quot;</span>);</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>...</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="kw">auto</span> infer = inference&lt;GenericMetropolis&gt;(f, *q, opts);</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="kw">auto</span> res = infer(data);</span></code></pre></div>
+<p>to (a) infer the <a href="https://davidrushingdewhurst.com/prob/lppl/docs/classWeightedMean.html">posterior mean</a> of a random variable named <code>"scale"</code> (b) using an online algorithm and (c) using <a href="https://davidrushingdewhurst.com/prob/lppl/docs/structGenericMetropolis.html">Metropolis-Hastings with a user-defined proposal kernel</a>. (The <code>opts</code> thing is just a bunch of <a href="https://davidrushingdewhurst.com/prob/lppl/docs/structinf__options__t.html">options</a> to pass to the inference algorithm.) You can see all the inference algorithms <a href="https://davidrushingdewhurst.com/prob/lppl/docs/dir_defc5c9a3b9c2e71cd6dbbc0fd39e3dd.html">here</a> and queryers <a href="https://davidrushingdewhurst.com/prob/lppl/docs/query_8hpp.html">here</a>. Have fun!</p>
+<h3 id="distinguishing-features">Distinguishing features</h3>
+<h4 id="flexibility">Flexibility</h4>
+<p><code>lppl</code> is designed to be extraordinarily flexible and a useful tool for research in foundations of probabilistic reasoning, not only a library for low-resource probabilistic modeling and statistical inference. lppl does <em>not</em> stop you from doing all sorts of things that don’t make sense from a typicaly statistical inference perspective – this can be seen as a feature or a bug depending on your level of comfort with probabilsitic program semantics.</p>
+<h4 id="streaming-first">Streaming-first</h4>
+<p>lppl;s interfaces are flexible, so you can implement nearly any kind of inference algorithm and querying capability you can think of in the framework and it should play nicely with existing components. However, lppl is designed specifically around low-memory applications (not <em>lowest</em> memory applications; for that see the program synthesis offshoot). Using an <span class="math inline">𝒪(1)</span> memory complexity queryer and expressing the probabilstic program using the filtering interface, it should be possible to do inference over arbitrarily large data streams – whether those are view-once streams sourced from physical sensors or the result of incrementally exectuting a database query.</p>
+<h4 id="probabilistic-program-variants">Probabilistic program variants</h4>
+<p>The basic probabilistic program is a callable that takes in a record and an input and returns an output, as described above:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">typename</span> I, <span class="kw">typename</span> O, <span class="kw">typename</span>... Ts&gt;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="kw">using</span> <span class="dt">pp_t</span> = <span class="bu">std::</span>function&lt;O(<span class="dt">record_t</span>&lt;DTypes&lt;Ts...&gt;&gt;&amp;, I)&gt;;</span></code></pre></div>
+<p>An lppl probabilistic program defines a joint density <span class="math inline"><em>p</em>(<em>y</em>)</span> where <span class="math inline"><em>y</em> = {<em>y</em><sub><em>a</em></sub>}<sub><em>a</em> ∈ <em>A</em></sub></span>, <span class="math inline"><em>A</em></span> being the set of addresses in the program and <span class="math inline"><em>y</em></span> the corresponding random variable. An address uniquely identifies a random variable, and neither the contents nor the cardinality of <span class="math inline"><em>A</em></span> may be known at compile time. Where it does not run the risk of confusion, we will often write the joint density as <span class="math inline"><em>p</em>(<em>x</em>, <em>z</em>)</span> where <span class="math inline"><em>x</em></span> are observed random variables – random variables with an <code>observe</code> statement – and the <span class="math inline"><em>z</em></span> are latent random variables – random variables with a <code>sample</code> statement. Inference methods draw samples from the posterior distribution <span class="math inline"><em>p</em>(<em>z</em>|<em>x</em>)</span>, while queryers return a view of that posterior distribution <span class="math inline"><em>V</em>[<em>p</em>(<em>z</em>|<em>x</em>)]</span> computed by consuming posterior samples.</p>
+<p>There are other probabilsitic program types that are specialize this alias or are similar to it, and are useful for other purposes.</p>
+<ul>
+<li><strong>Graph probabilistic programs</strong>: sometimes, particularly for programs with static structure or <em>a priori</em> finite size, we might want to do inference using an explicit graph data structure. This could enable us to write lower-variance inference algorithms or use message passing methods, for example. Graph probabilsitic programs look similar to ordinary ones: <code>template&lt;typename I, typename O, typename... Ts&gt;     using gpp_t = std::function&lt;O(gr_pair&lt;Ts...&gt;&amp;, I)&gt;;</code> where the data structure <a href="https://davidrushingdewhurst.com/prob/lppl/docs/structgr__pair.html"><code>gr_pair</code></a> combines a record with a directed graph data structure. To sample and observe into a graph data structure requires slightly different syntax – sample now looks like <code>cpp     auto x = sample_g&lt;Normal&gt;(gr, "x", rng)(loc, scale);</code> while observing a <code>value</code> now looks like <code>cpp     observe_g&lt;Normal&gt;(gr, "value", value)(loc, scale);</code> The <code>sample_g</code> and <code>observe_g</code> calls construct an intermediate data structure that records the distribution choice, parent/child relationships, and posisble values to observe against the distribution in a graph data structure, while the second call defines the parameters of that constructed distribution.</li>
+<li><strong>Updatable probabilistic programs</strong>: a filtering process defines a sequence of densities or mass functions that update over time as a function of streaming observed data. Particle filtering methods are subject to shortcomings such as particle starvation, where there are very few high-likelihood particles to use for subsequent filtering iterations. lppl introduces a parametric variational approach to filtering that is memory-efficient and cannot suffer from particle starvation (since it does not use particles to represent posterior distributions). This approach, which is generic over inference algorithm choice, introduces two new primitive inference operations: a filtering policy and an update policy. Given a sequence of joint densities <span class="math inline">{<em>p</em><sub><em>n</em></sub>(<em>x</em>, <em>z</em>)}<sub><em>n</em> ∈ {1, 2, ...}</sub></span> that factor as <span class="math inline"><em>p</em><sub><em>n</em></sub>(<em>x</em>, <em>z</em>) = <em>p</em>(<em>x</em>|<em>z</em>)<em>q</em><sub><em>n</em></sub>(<em>z</em>; <em>θ</em><sub><em>n</em></sub>)</span>, a filtering policy <span class="math inline"><em>P</em></span> is a functional <span class="math inline"><em>q</em><sub><em>n</em></sub> = <em>P</em>[<em>q</em><sub><em>n</em> − 1</sub>]</span>, while an update policy <span class="math inline"><em>U</em></span> computes <span class="math inline"><em>θ</em><sub><em>n</em></sub> = <em>U</em>(<em>V</em>[<em>p</em><sub><em>n</em> − 1</sub>(<em>z</em>|<em>x</em>)])</span>. Updatable probabilistic programs, defined <code>template&lt;         template&lt;typename&gt; class Policy,         typename I,         typename O,         typename... Ts     &gt;     using upp_t = pp_t&lt;typed_map&lt;Policy, I, Ts...&gt;&amp;, O, Ts...&gt;;</code> are used in variational filtering applications. The <code>Policy</code> template class, corresponding to the filtering policy <span class="math inline"><em>P</em></span>, specifies what the family of the variational posterior / next iteration’s prior should be, A <code>typed_map</code> is an associative data structure that holds the distribution to be sampled from at each non-observed address. Similar to graph probabilistic programs, updatable probabilsitic programs have their own sample and observe syntax, <code>cpp     auto x = sample_u&lt;Normal&gt;(r, "x", input, rng);</code> and <code>cpp     observe_u&lt;double&gt;(r, "obs", Normal(loc, scale), input);</code> respectively. Here <code>sample_u</code> translates to “look in the <code>input</code> (a <code>typed_map</code>) for the distribution at the site <code>"x"</code>, and sample from that; the initial distribution family for this site is Normal”. The distribution template parameter is necessary, as some policies will change the type of distribution used at a site during inference. For example, a <a href="https://davidrushingdewhurst.com/prob/lppl/docs/structNormalPolicy.html"><code>NormalPolicy</code></a> will represent every distribution whose output type is <code>double</code> by a Normal distribution, automatically backtransformign sampled values into the correct domain (e.g., from <span class="math inline">( − ∞, ∞)</span> to <span class="math inline">(0, ∞)</span> if the original distribution were Gamma). There’s an example of putting an inference algorithm, queryer, filtering policy, and update policy all together further down.</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<p>There’s a <a href="https://gitlab.com/drdewhurst/fmcs-demo">repository of examples</a> that showcases some of <code>lppl</code>’s capabilities. The examples are biased toward use cases that I think might be well-suited for the library, such as time series filtering, forecasting, and nowcasting, and open-universe modeling (e.g., clustering with an unknown number of clusters). Here’s a dive into two of the examples, with more to discover in the repo.</p>
+<h3 id="pipe-filter-forecast"><code>pipe-filter-forecast</code></h3>
+<p>This example constructs two related models – one for filtering a time series, the other for forecasting future values – and performs inference, variational updates, and forecasting tasks. The filtering model <span class="math inline"><em>f</em>(<em>x</em><sub><em>t</em></sub>, <em>z</em><sub><em>t</em></sub>)</span> is a simple normal filtering model: <br /><span class="math display"><em>f</em>(<em>x</em><sub><em>t</em></sub>, <em>μ</em><sub><em>t</em></sub>, <em>τ</em><sub><em>t</em></sub>) = <em>N</em><em>o</em><em>r</em><em>m</em><em>a</em><em>l</em>(<em>x</em><sub><em>t</em></sub>|<em>μ</em><sub><em>t</em></sub>, <em>τ</em><sub><em>t</em></sub><sup> − 1/2</sup>)<em>q</em>(<em>μ</em><sub><em>t</em></sub>)<em>q</em>(<em>τ</em><sub><em>t</em></sub>),</span><br /> where <span class="math inline"><em>q</em>(<em>μ</em><sub><em>t</em></sub>) = <em>N</em><em>o</em><em>r</em><em>m</em><em>a</em><em>l</em>(<em>μ</em><sub><em>t</em></sub>|<em>μ</em><sub>0</sub>, <em>σ</em><sub>0</sub>)</span> and <span class="math inline"><em>q</em>(<em>τ</em><sub><em>t</em></sub>) = <em>G</em><em>a</em><em>m</em><em>m</em><em>a</em>(<em>k</em>, <em>θ</em>)</span> initially. This is implemented as an updatable probabilistic program:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="dt">upp_t</span>&lt;DefaultPolicy, <span class="dt">double</span>, <span class="dt">double</span>, Normal, Gamma&gt; f = [](</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>        <span class="dt">record_t</span>&lt;DTypes&lt;Normal, Gamma&gt;&gt;&amp; r, </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>        typed_map&lt;DefaultPolicy, <span class="dt">double</span>, Normal, Gamma&gt;&amp; input</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    ) {</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>        <span class="kw">auto</span> loc = sample_u&lt;Normal&gt;(r, <span class="st">&quot;loc&quot;</span>, input, rng);</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>        <span class="kw">auto</span> precision = sample_u&lt;Gamma&gt;(r, <span class="st">&quot;precision&quot;</span>, input, rng);</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a>        <span class="cf">return</span> observe_u&lt;<span class="dt">double</span>&gt;(r, <span class="st">&quot;obs&quot;</span>, Normal(loc, <span class="fl">1.0</span> / <span class="bu">std::</span>sqrt(precision)), input);</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a>    };</span></code></pre></div>
+<p>The forecasting model <span class="math inline"><em>g</em>(<em>z</em><sub><em>t</em></sub>, <em>z</em><sub><em>t</em> − 1</sub>)</span> uses the current estimate of latent state to construct a linear forecast of observed state: <br /><span class="math display"><em>g</em>(<em>x</em><sub><em>t</em></sub>, <em>z</em><sub><em>t</em> − 1</sub>, <em>μ</em><sub><em>t</em></sub>, <em>τ</em><sub><em>t</em></sub>) = <em>N</em><em>o</em><em>r</em><em>m</em><em>a</em><em>l</em>(<em>x</em><sub><em>t</em></sub>|<em>z</em><sub><em>t</em> − 1</sub> + <em>μ</em><sub><em>t</em></sub><em>d</em><em>t</em>, <em>τ</em><sub><em>t</em></sub><sup> − 1/2</sup>)<em>q</em>(<em>μ</em><sub><em>t</em></sub>)<em>q</em>(<em>τ</em><sub><em>t</em></sub>),</span><br /> with the same initial distributions for <span class="math inline"><em>q</em>(<em>μ</em><sub><em>t</em></sub>)</span> and <span class="math inline"><em>q</em>(<em>τ</em><sub><em>t</em></sub>)</span> as in <span class="math inline"><em>f</em></span>. This is also implemented as an updateable probabilistic program:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="dt">upp_t</span>&lt;DefaultPolicy, <span class="dt">double</span>, <span class="dt">double</span>, Normal, Gamma&gt; g = [](</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>        <span class="dt">record_t</span>&lt;DTypes&lt;Normal, Gamma&gt;&gt;&amp; r, </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a>        typed_map&lt;DefaultPolicy, <span class="dt">double</span>, Normal, Gamma&gt;&amp; input</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true"></a>    ){  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true"></a>        <span class="kw">auto</span> dt = input.<span class="kw">template</span> extract_value&lt;<span class="dt">double</span>&gt;(<span class="st">&quot;dt&quot;</span>);</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true"></a>        <span class="kw">auto</span> mu = sample_u&lt;Normal&gt;(r, <span class="st">&quot;mu&quot;</span>, input, rng);</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true"></a>        <span class="kw">auto</span> precision = sample_u&lt;Gamma&gt;(r, <span class="st">&quot;precision&quot;</span>, input, rng);</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true"></a>        <span class="kw">auto</span> x_prev = sample_u&lt;Normal&gt;(r, <span class="st">&quot;x_prev&quot;</span>, input, rng);</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true"></a>        <span class="cf">return</span> observe_u&lt;<span class="dt">double</span>&gt;(r, <span class="st">&quot;x&quot;</span>, Normal(x_prev + dt * mu, <span class="bu">std::</span>sqrt(dt) / <span class="bu">std::</span>sqrt(precision)), input);</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true"></a>    };</span></code></pre></div>
+<p>Queryers and inference / filtering algorithms are automatically derived:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="co">// queryer -- O(1) query computing sufficient statistics</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="kw">auto</span> q = ProductGenerator&lt;WeightedMeanStd, <span class="bu">std::</span>pair&lt;<span class="dt">double</span>, <span class="dt">double</span>&gt;, <span class="dt">double</span>, Normal, Gamma&gt;::generate({<span class="st">&quot;loc&quot;</span>, <span class="st">&quot;precision&quot;</span>});</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="kw">auto</span> q_forecast = ProductGenerator&lt;WeightedMeanStd, <span class="bu">std::</span>pair&lt;<span class="dt">double</span>, <span class="dt">double</span>&gt;, <span class="dt">double</span>, Normal, Gamma&gt;::generate({<span class="st">&quot;mu&quot;</span>, <span class="st">&quot;precision&quot;</span>});</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="kw">auto</span> opts = <span class="dt">inf_options_t</span>(<span class="dv">10000</span>);</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="co">// inference algorithm</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="kw">auto</span> infer = inference&lt;LikelihoodWeighting&gt;(f, q, opts);</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a><span class="kw">auto</span> infer_forecast = inference&lt;LikelihoodWeighting&gt;(g, q_forecast, opts);</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a><span class="co">// automatically derive a filtering algorithm</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="kw">auto</span> algo = filter&lt;ParameterMatching, DefaultPolicy&gt;(f, q, infer);</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a><span class="kw">auto</span> algo_forecast = filter&lt;ParameterMatching, DefaultPolicy&gt;(g, q_forecast, infer_forecast);</span></code></pre></div>
+<p>The filtering algorithm derived here is similar to a standard particle filter using the prior as a proposal distribution, but differs in some key ways: + The posterior is never built up in memory but instead generated one sample at a time + Each sample is used to incrementally compute a streaming mean and standard deviation of each latent variable site + Analytical prior distributions are used at the subsequent timestep (as opposed to using a weighted collection of particles). The <code>DefaultPolicy</code> mapping is used, meaning that the functional form of the prior distribution will be the same at the subsequent timestep.</p>
+<p>During inference, the posterior distribution of <span class="math inline"><em>μ</em><sub><em>t</em></sub></span> from <span class="math inline"><em>f</em></span> is used as the input distribution for <span class="math inline"><em>z</em><sub><em>t</em> − 1</sub></span> in <span class="math inline"><em>g</em></span>, which is how the models are connected:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">auto</span> x_prev_dist = m.<span class="kw">template</span> extract&lt;Normal&gt;(<span class="st">&quot;loc&quot;</span>);</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a><span class="va">m_forecast</span>.insert_or_assign(<span class="st">&quot;x_prev&quot;</span>, x_prev_dist);</span></code></pre></div>
+<p>We use the tiny test dataset <code>doubles.stream</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="fu">cat</span> ../data/doubles.stream </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="ex">1.0</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="ex">1.1</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a><span class="ex">2.0</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="ex">2.5</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a><span class="ex">3.0</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="ex">3.1</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="ex">3.125</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a><span class="ex">3.5</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="ex">3.2</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a><span class="ex">2.6</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a><span class="ex">2.5</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a><span class="ex">2.0</span></span></code></pre></div>
+<p>The algorithm executes 10,000 iterations of importance sampling, posterior computations, and posterior -&gt; prior updating for each of the 12 datapoints in about 2.3 seconds total while using 4MB RAM:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="fu">cat</span> ../data/doubles.stream <span class="kw">|</span> <span class="ex">/usr/bin/time</span> -v ./pipe-filter-forecast <span class="op">&gt;</span> ../data/pipe-filter-forecast.csv </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>    <span class="ex">Command</span> being timed: <span class="st">&quot;./pipe-filter-forecast&quot;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>    <span class="ex">User</span> time (seconds)<span class="bu">:</span> 2.31</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>    <span class="ex">System</span> time (seconds)<span class="bu">:</span> 0.00</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>    <span class="ex">Percent</span> of CPU this job got: 99%</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a>    <span class="ex">Elapsed</span> (wall clock) <span class="bu">time</span> (h:mm:ss or m:ss)<span class="bu">:</span> 0:02.32</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a>    <span class="ex">Average</span> shared text size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a>    <span class="ex">Average</span> unshared data size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a>    <span class="ex">Average</span> stack size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>    <span class="ex">Average</span> total size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a>    <span class="ex">Maximum</span> resident set size (kbytes)<span class="bu">:</span> 3968</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a>    <span class="ex">Average</span> resident set size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a>    <span class="ex">Major</span> (requiring I/O) <span class="ex">page</span> faults: 0</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a>    <span class="ex">Minor</span> (reclaiming a frame) <span class="ex">page</span> faults: 151</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a>    <span class="ex">Voluntary</span> context switches: 2</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a>    <span class="ex">Involuntary</span> context switches: 9</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true"></a>    <span class="ex">Swaps</span>: 0</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true"></a>    <span class="ex">File</span> system inputs: 0</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true"></a>    <span class="ex">File</span> system outputs: 8</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true"></a>    <span class="ex">Socket</span> messages sent: 0</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true"></a>    <span class="ex">Socket</span> messages received: 0</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true"></a>    <span class="ex">Signals</span> delivered: 0</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true"></a>    <span class="ex">Page</span> size (bytes)<span class="bu">:</span> 4096</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true"></a>    <span class="ex">Exit</span> status: 0</span></code></pre></div>
+<p>We can see the result of this (yes, I admit, visualized using Python…) <img src="../../_resources/pipe-filter-forecast.png" alt="pipe-filter-forecast.png" /> On the top chart, the blue curve are the actual “observed” (come on, play along) datapoints. The grey probability distributions are distributions of latent state, while the red lines are draws from the posterior forecast distribution over the next observed datapoint.</p>
+<h3 id="pipe-clustering"><code>pipe-clustering</code></h3>
+<p>This demonstrates implementation of and inference over a canonical weak-open-universe clustering model. In words, the model <em>a priori</em> doesn’t bound the number of clusters, but instead draws the number from a probability distribution defined over the positive integers. Given the number of clusters, the structure of the rest of the program is known at compile time. Implemented, it looks like this:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="kw">typename</span> RNG&gt;</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="dt">int</span> clustering(<span class="dt">cluster_t</span>&amp; r, <span class="dt">data_t</span>&amp; data, RNG&amp; rng) {</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>    <span class="kw">auto</span> num_clusters = sample(r, <span class="st">&quot;num_clusters - 1&quot;</span>, Poisson(<span class="dv">1</span>), rng) + <span class="dv">1</span>;</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>    <span class="co">// cluster parameterization</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>    <span class="bu">std::</span>vector&lt;Normal&gt; dists;</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="dt">int</span> ix = <span class="dv">0</span>; ix != num_clusters; ++ix) {</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>        <span class="kw">auto</span> loc = sample(r, <span class="st">&quot;cluster/&quot;</span> + <span class="bu">std::</span>to_string(ix) + <span class="st">&quot;/loc&quot;</span>, Normal(<span class="fl">0.0</span>, <span class="fl">4.0</span>), rng);</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>        <span class="kw">auto</span> scale = sample(r, <span class="st">&quot;cluster/&quot;</span> + <span class="bu">std::</span>to_string(ix) + <span class="st">&quot;/scale&quot;</span>, Gamma(<span class="fl">2.0</span>, <span class="fl">2.0</span>), rng);</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a>        dists.push_back(Normal(loc, scale));</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>    }</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>    <span class="co">// data point assignment</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a>    <span class="dt">int</span> ix = <span class="dv">0</span>;</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="at">const</span> <span class="kw">auto</span>&amp; d : data) {</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a>        <span class="kw">auto</span> weights = make_weights_l2(d, dists);</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a>        <span class="kw">auto</span> this_cluster = sample(r, <span class="st">&quot;data/&quot;</span> + <span class="bu">std::</span>to_string(ix) + <span class="st">&quot;/cluster&quot;</span>, Categorical(weights), rng);</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true"></a>        observe(r, <span class="st">&quot;obs/&quot;</span> + <span class="bu">std::</span>to_string(ix), dists[this_cluster], d);</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true"></a>        ++ix;</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true"></a>    }</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true"></a>    <span class="cf">return</span> num_clusters;</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true"></a>}</span></code></pre></div>
+<p>There are lots of possible ways to assign points to clusters. This model uses <code>make_weights_l2</code> to assign the point to a random cluster according to its score under the analytical cluster distribution, <br /><span class="math display">$$
+\pi_{n,m} \propto \exp\left\{-\frac{1}{2}\left( \frac{x_n - \mu_m}{\sigma_m}\right)^2\right\}.
+$$</span><br /> We can make inference over this model interesting. The obvious way to do it is just to run some sort of importance sampling or MCMC algorithm over it, but this could lead to inaccurate and high-variance estimates due to the discrete latent random variable all the way upstream in the computation graph. In Stan, you’d handle this by manually enumerating out this random variable (e.g., see the Stan <a href="https://mc-stan.org/docs/stan-users-guide/latent-discrete.html#change-point.section">changepoint detection</a> example). In Pyro’s infinite awesomeness, you’d breezily ask Pyro to get rid of that pesky latent random variable for you by passing <code>{"config": "enumerate"}</code> as an inference argument. lppl takes a middle approach, making interfaces flexible enough for you to implement your own automatic enumeration inference algorithm generator. This whole story is in <code>infer_enumerate.hpp</code>, but the core of the idea is contained in the call method of the generated inference algorithm and should be fairly self-explanatory:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>VType <span class="kw">operator</span>()(I&amp; input) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>    VType out;</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>    <span class="co">// could convert to embarassingly parallel algo</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>    <span class="cf">for</span> (<span class="dt">int</span> ix = low; ix != high; ++ix) {</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>        <span class="kw">auto</span> cond_f = condition&lt;D&gt;(<span class="kw">this</span>-&gt;f, address, ix);</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>        <span class="kw">auto</span> infer = Inference&lt;A, I, O, V, Q, Ts...&gt;(cond_f, <span class="kw">this</span>-&gt;queryer, <span class="kw">this</span>-&gt;opts);</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a>        <span class="cf">if</span> <span class="kw">constexpr</span> (has_clear&lt;<span class="kw">decltype</span>(<span class="kw">this</span>-&gt;queryer)&gt;::value) {</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true"></a>            <span class="kw">this</span>-&gt;queryer.clear();</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true"></a>        }</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true"></a>        out[ix] = infer(input);</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true"></a>    }</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true"></a>    <span class="cf">return</span> out;</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true"></a>}</span></code></pre></div>
+<p>The enumeration functionality we define can automatically enumerate any type of discrete latent random variable. Here, we use enumeration in a maximum <em>a posteriori</em> inference problem, using Metropolis-Hastings to compute the MAP for each possible number of clusters in the reduced search space <span class="math inline">{1, ..., 7}</span>.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="kw">auto</span> q = Optimizer&lt;<span class="dt">double</span>, <span class="dt">int</span>, Normal, Gamma, Categorical, Poisson&gt;(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>        [](<span class="dt">cluster_t</span>&amp; r, <span class="dt">int</span>&amp;, <span class="dt">double</span>&amp;) { <span class="cf">return</span> logprob(r); },</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>        [](<span class="dt">cluster_t</span>&amp; r, <span class="dt">int</span>&amp;, <span class="dt">double</span>&amp;) { <span class="cf">return</span> logprob(r); }</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>    );</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>...</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="kw">auto</span> enum_alg = enumerate&lt;AncestorMetropolis, Poisson&gt;(f, q, opts);</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="kw">auto</span> infer = enum_alg(<span class="st">&quot;num_clusters - 1&quot;</span>, <span class="dv">0</span>, <span class="dv">6</span>);</span></code></pre></div>
+<p>Using the tiny<code>clusters.stream</code> data set,</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="fu">cat</span> ../data/clusters.stream </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="ex">1.1</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="ex">1.2</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="ex">1.14</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="ex">0.85</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a><span class="ex">0.9</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a><span class="ex">3.1</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a><span class="ex">3.3</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a><span class="ex">3.2</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a><span class="ex">3.1</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true"></a><span class="ex">3.0</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true"></a><span class="ex">2.9</span></span></code></pre></div>
+<p>inference results look like</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="fu">cat</span> ../data/clusters.stream <span class="kw">|</span> <span class="ex">/usr/bin/time</span> -v ./pipe-clustering </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="ex">0</span>: -21.3459</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="ex">1</span>: -16.5283</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a><span class="ex">2</span>: -28.0056</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="ex">3</span>: -29.4129</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a><span class="ex">4</span>: -39.4436</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="ex">5</span>: -54.8752</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a>    <span class="ex">Command</span> being timed: <span class="st">&quot;./pipe-clustering&quot;</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a>    <span class="ex">User</span> time (seconds)<span class="bu">:</span> 6.05</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a>    <span class="ex">System</span> time (seconds)<span class="bu">:</span> 0.00</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a>    <span class="ex">Percent</span> of CPU this job got: 99%</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a>    <span class="ex">Elapsed</span> (wall clock) <span class="bu">time</span> (h:mm:ss or m:ss)<span class="bu">:</span> 0:06.06</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a>    <span class="ex">Average</span> shared text size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a>    <span class="ex">Average</span> unshared data size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a>    <span class="ex">Average</span> stack size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true"></a>    <span class="ex">Average</span> total size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true"></a>    <span class="ex">Maximum</span> resident set size (kbytes)<span class="bu">:</span> 4224</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true"></a>    <span class="ex">Average</span> resident set size (kbytes)<span class="bu">:</span> 0</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true"></a>    <span class="ex">Major</span> (requiring I/O) <span class="ex">page</span> faults: 0</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true"></a>    <span class="ex">Minor</span> (reclaiming a frame) <span class="ex">page</span> faults: 163</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true"></a>    <span class="ex">Voluntary</span> context switches: 1</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true"></a>    <span class="ex">Involuntary</span> context switches: 110</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true"></a>    <span class="ex">Swaps</span>: 0</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true"></a>    <span class="ex">File</span> system inputs: 0</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true"></a>    <span class="ex">File</span> system outputs: 0</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true"></a>    <span class="ex">Socket</span> messages sent: 0</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true"></a>    <span class="ex">Socket</span> messages received: 0</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true"></a>    <span class="ex">Signals</span> delivered: 0</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true"></a>    <span class="ex">Page</span> size (bytes)<span class="bu">:</span> 4096</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true"></a>    <span class="ex">Exit</span> status: 0</span></code></pre></div>
+<p>correctly inferring the (admittedly not that challenging) number of two clusters in about six seconds using about 4MB RAM.</p>
+
+</body>

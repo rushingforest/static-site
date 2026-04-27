@@ -1,0 +1,84 @@
+.jumbotron {
+    background-color: #33425b;
+    color: #a2b0be;
+    /* height: 100vh; */
+}
+
+a{
+    color: #a2b0be;
+}
+
+a:hover {
+color: #cb1528;
+}
+
+a:active {
+color: #cb1528;
+}
+  
+html {
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    padding-top: 50px;
+    min-height: 100%;
+    margin: 0;
+    background-image: url("../photos/bridge.jpg");
+    height: 500px; /* You must set a specified height */
+    background-position: center; /* Center the image */
+    background-repeat: repeat; /* Do not repeat the image */
+    background-size: cover; /* Resize the background image to cover the entire container */
+}
+
+ /* Add a dark background color with a little bit see-through */
+ .navbar {
+    margin-bottom: 0;
+    background-color: #33425b;
+    border: 0;
+    font-size: 11px !important;
+    letter-spacing: 4px;
+    opacity: 0.9;
+  }
+  
+  .navbar li a, .navbar .navbar-brand {
+    color: #a2b0be;
+  }
+  
+  /* On hover, the links will turn white */
+  .navbar-nav li a:hover {
+    color: #cb1528 !important;
+  }
+  
+  /* The active link */
+  .navbar-nav li.active a {
+    color: #cb1528 !important;
+    background-color: #33425b !important;
+  }
+  
+  /* Remove border color from the collapsible button */
+  .navbar-default .navbar-toggle {
+    border-color: transparent;
+  }
+
+  #econ-home {
+    background-color:#000000;
+    color: #ffffff;
+    opacity: 0.75;
+    padding: 60px 50px;
+  }
+
+  #prob-home {
+    background-color:#000000;
+    color: #ffffff;
+    opacity: 0.75;
+    padding: 60px 50px;
+  }
+
+  #div_detail__body {
+    color: #ffffff;
+    opacity: 0.75;
+    padding: 60px 50px;
+  }
+

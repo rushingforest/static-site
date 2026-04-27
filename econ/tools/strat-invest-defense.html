@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | geoeconomics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/econ.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+     <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+      messageStyle: "none"
+    });
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+    <style>
+
+        .flowchart-viewport {
+            width: 100%;
+            overflow-x: auto; 
+            border: 2px solid grey;
+            background: black;
+            border-radius: 10px;
+        }
+
+        .flowchart-container {
+            position: relative;
+            width: 1200px; 
+            height: 500px;
+            background-color: black;
+        }
+
+        .flowchart-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; 
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .flowchart-node {
+            position: absolute;
+            background-color: black;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;         
+        }
+
+        .flowchart-edge {
+            fill: none;
+            stroke: #007bff;
+            stroke-width: 2px;
+            color: #333;
+        }
+
+        .edge-label {
+            fill: white;
+            font-size: 13px;
+            font-weight: bold;
+            text-anchor: middle;
+            paint-order: stroke;
+            stroke: none;
+            stroke-width: 3px;
+        }
+        
+        #chart2 .flowchart-node { border-color: #28a745; }
+        #chart2 .flowchart-edge { stroke: #dc3545; }
+        #chart2 .edge-label { fill: #dc3545; }
+
+
+        
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="./index.html">up</a></li>
+              <li><a href="../index.html">geoeconomics</a></li>
+              <li><a href="../../prob/index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<div class="container-fluid" id="econ-home">
+
+<h2>geoeconomics | strategy and investment decisions in private funding of defense capabilities (20260102)</h2>
+
+<h3 id="introduction">1. Introduction</h3>
+<p>Elementary microeconomics teaches that national defense is a public good and thus will almost certainly be provided by the state. With rare exception this has been true throughout history. The degree to which state provision of national defense is vertically integrated varies by nation. China, for example, depends heavily on state-owned enterprises to design and manufacture defense platforms, while the United States defers almost all design (post requirements) and manufacture to private enterprise or publicly traded firms. Yet no nation defers <em>financing</em> of war to the private sector; ultimately the central government is assumed responsible for the financial cost of going to war.</p>
+<p>Must nations always finance their wars? More precisely, in a bilateral war between Red and Blue, must Blue always pay for the defense capabilities that it uses to wage the war? Is it possible to pare down the role of the state in war to planning (strategic and tactical) and execution only – not design, manufacture, <em>or</em> financing?</p>
+<p>The crux of our argument is that, conditioned on Blue winning the war, the post-war economy of Red can be mortgaged to finance private-sector defense production in Blue. We argue that this novel financial arrangement is a positive-sum outcome – i.e., is beneficial for both Blue and Blue’s domestic defense industry (abbreviated BI) – and that, given a specific contractual arrangement that we derive, BI is incentivized to act cost-effectively and rapidly on Blue’s behalf.</p>
+<p>The paper proceeds as follows. In Section 2, we lay out the Blue defense industry’s incentives and the incentives of other relevant economic actors – property/casualty insurance firms and financial arbitrageurs – and derive contract structures that could enable private financing of defense production. In Section 3, we explain how Blue’s defense industry <em>would</em> get paid if not by the Blue government. Section 4 lays out why and how the Blue government could credibly commit to mortgaging of the post-war economy. Section 5 concludes the paper and suggests avenues for future research.</p>
+<p>The paper is entirely theoretical. Econometric and experimental study, though probably necessary for operational application of the results presented here, are out of scope because the results of those studies would be too sensitive for public disclosure.</p>
+<h3 id="blue-industrys-incentives">2. Blue industry’s incentives</h3>
+<p>We will work from the inside out. We consider a “simple” conflict – a country in which we consider ourselves stationed, called Blue, versus an adversary country, called Red – and augment this structure with the central role of private industry within Blue’s economy. We term this last, central entity “Blue Industry” or BI for short. We make the important simplifying assumption that BI is a monolithic entity for the duration of this paper. We discuss the ramifications of this assumption in Section 5.</p>
+<p>As an exercise in <em>reductio ad absurdem</em>, we start with the starkest case of privately funded defense capabilities. Suppose it is common knowledge between Blue and BI that Blue and Red will go to (kinetic) war at a pre-determined point in time. Suppose also that Blue has credibly committed to spending no additional funding on the war; BI can either decide to invest in defense capabilities on behalf of Blue itself or decide not to do that. (We will revisit the certain-date and credible commitment assumptions later in this paper.) Supposing that investment is a binary choice and that the war can either be won or lost, this leads to the following simple decision diagram:</p>
+<br>
+<div class="flowchart-viewport">
+    <div id="bi-basic-decision" class="flowchart-container"></div>
+</div>
+<br>
+<p>The decision problem for BI is fully parameterized in terms of probabilities of winning (losing) under the decision to invest or not invest and in terms of the value function <span class="math inline"><em>V</em>(<em>x</em>, <em>y</em>)</span> where <span class="math inline"><em>x</em></span> is the choice to invest or not and <span class="math inline"><em>y</em></span> is the binary random variable of winning or losing the war. For it to be rational for BI to invest in defense capabilities it must have <span class="math inline"><em>E</em>[<em>V</em>(<em>i</em>)] &gt; <em>E</em>[<em>V</em>(<em>d</em><em>i</em>)]</span>, or <br /><span class="math display">$$
+pV(i, w) + (1-p)V(i, l) &gt; q V(di, w) + (1-q)V(di, l) \tag{1}.
+$$</span><br /> Though overparameterized, this inequality gives us a useful starting point. We see immediately that many things could increase the probability of BI choosing to invest: an increased probability of winning given investment (assuming that <span class="math inline"><em>V</em>(<em>w</em>) &gt; <em>V</em>(<em>l</em>)</span>), an increased payoff from winning, a decreased payoff from losing, and so on. Each term in the inequality is a lever for Blue to pull when attempting to incentivize BI to invest in defense production; likewise, each term will be affected by Red to disincentivize BI’s investment (assuming, for the time being, that the probability of Blue’s victory is monotone increasing in Blue’s investment choice).</p>
+<p>Relaxing the discrete nature of BI’s investment gives a more useful treatment of the problem. We consider the identical game structure as above but let <span class="math inline"><em>I</em> ∈ (0, ∞)</span> be the amount of capital BI chooses to invest. BI solves <span class="math inline">max<sub><em>I</em></sub><em>E</em>[<em>π</em>(<em>I</em>)]</span>, where <br /><span class="math display">$$
+E[\pi(I)] = p(I) V(I,w) + (1-p(I))V(I,l) - I \tag{2}.
+$$</span><br /> where we assume that BI can express the value of Blue’s winning or losing the war in monetary terms. The first order condition is <br /><span class="math display">$$
+0=\frac{\partial E[\pi(I)]}{\partial I} = \frac{\partial p}{\partial I}(V(I,w) - V(I,l))+p(I)\frac{\partial V(I, w)}{\partial I} + (1-p(I))\frac{\partial V(I, l)}{\partial I} - 1 \tag{3}.
+$$</span><br /> Eqs. (1) and (3) each indicate at least two paths to incentivize BI’s financing of effective defense technology: Increase the payoff for BI given that Blue wins and increase the likelihood that Blue wins the war given a particular level of investment.</p>
+<p>Of course, even assuming Blue’s credible commitment, BI would not face such a stark decision as invest a fixed amount over one period and then, in the next period, observe if the war was won or lost. Instead, BI would be able to invest a varying amount until the war started (and likely for the duration of the war). The start (<span class="math inline"><em>t</em><sub>0</sub></span>) and end (<span class="math inline"><em>t</em><sub>1</sub></span>) dates of the war, too, would be a function of the amount BI chose to invest, as would the outcome of the war, BI’s concomitant (monetary) value from the war’s outcome, and the “risk-free” interest rate <span class="math inline"><em>r</em><sub><em>t</em></sub></span>. Mathematically, BI’s profit – now a random variable – takes the form <br /><span class="math display">$$
+\pi(I) = \sum_{t=1}^{t_0-1}(R(I_t) - C(I_t))\beta_t + \sum_{t=t_0}^{t_1-1}(R(I_t) - C(I_t))\beta_t + \pi_F\beta_{t_1} \tag{4},
+$$</span><br /> where, as just mentioned, the start and end time random variables are also dependent on the amount of investment, i.e., <span class="math inline"><em>t</em><sub><em>i</em></sub> ∼ <em>p</em>(<em>t</em><sub><em>i</em></sub>|<em>I</em>)</span> for <span class="math inline"><em>i</em> ∈ {0, 1}</span>, and the discount factor <span class="math inline"><em>β</em><sub><em>t</em></sub></span> is defined <span class="math inline">$\beta_t = \frac{1}{1+r_t}\beta_{t-1} = \prod_{s=0}^t \frac{1}{1+r_s}$</span> with <span class="math inline">$\beta_0 = \frac{1}{1+r_0}$</span>. (The astute reader will note that of course <span class="math inline"><em>t</em><sub>1</sub></span> also depends on <span class="math inline"><em>t</em><sub>0</sub></span> if only because <span class="math inline"><em>t</em><sub>0</sub> ≤ <em>t</em><sub>1</sub></span>, and that the relevant quantities really are <span class="math inline"><em>t</em><sub>0</sub></span> and <span class="math inline"><em>δ</em><em>t</em> = <em>t</em><sub>1</sub> − <em>t</em><sub>0</sub></span>.) We do not assume a fixed interest rate, as is commonplace in discounted cash flow calculations, because the trajectory of the interest rate is almost certainly causally related to the existence of a war with Red, as we explain presently. In what follows, we assume that <span class="math inline"><em>E</em>[<em>π</em><sub><em>F</em></sub>] ≥ 0</span>; we assume that, if Blue loses the war, <span class="math inline"><em>π</em><sub><em>F</em></sub> = 0</span> but is not negative.</p>
+<p>A particularly simple, illustrative, and important special case of Eq. 4 is the situation in which BI incurs only costs until the final time point at which it realizes the final (monetary) benefit of Blue’s having won or lost the war: <br /><span class="math display">$$
+\pi = \pi_F \beta_{t_1} - \sum_{t=1}^{t_1-1}C_t \beta_t\tag{5}.
+$$</span><br /> Eq. 5 is essentially the negative of a random variable common in insurance modeling. In the insurance context, an insurance firm collects a premium <span class="math inline"><em>ρ</em><sub><em>t</em></sub></span> for every time period until such time <span class="math inline"><em>T</em></span> as a random event against which the policyholder is insured occurs, at which point the insurance firm pays out the claim <span class="math inline"><em>C</em><sub><em>T</em></sub></span> (assuming all contractual terms are met): <br /><span class="math display">$$
+\pi_{insurance} = \sum_{t=1}^{T-1} \rho_t\beta_t - C_T\beta_T.
+$$</span><br /> The incentive structures between the two applications are basically reversed: the insurance company seeks to find policyholders (or influence existing policyholders) for which <span class="math inline"><em>T</em></span> is large, while in the defense production case, <em>ceteris paribus</em>, BI wants <span class="math inline"><em>t</em><sub>1</sub> − <em>t</em><sub>0</sub></span> as small as possible so that the value of <span class="math inline"><em>π</em><sub><em>F</em></sub></span> is discounted as little as possible and their accumulated costs are as small as possible.</p>
+<p>The incentives created by the defense production random variable also differ from those created by the insurance random variable in the following important way. In insurance, two types of profit matter: future accounting profit, by which we mean that at time <span class="math inline"><em>T</em></span> (assuming it is finite) the firm must have cash on hand available to pay <span class="math inline"><em>C</em><sub><em>T</em></sub></span>; and current economic profit, meaning that <span class="math inline"><em>E</em>[<em>π</em><sub><em>i</em><em>n</em><em>s</em><em>u</em><em>r</em><em>a</em><em>n</em><em>c</em><em>e</em></sub>] &gt; 0</span> at time <span class="math inline"><em>t</em> = 1</span> if the business is worth running. The accounting profit constraint in the insurance application has ramifications for the insurance company: the company is very likely to invest the premia (as many purchasers of insurance are unwilling to pay the high premia that would be required for <span class="math inline">$\sum_{t=1}^{T-1} \rho_t &gt; C_T$</span> otherwise) and generally value high investment liquidity due to the uncertain nature of the payout date. However, in the defense production case, it is clear that the firm that is producing the defense good is immediately insolvent, since it accumulates a stream of costs starting at <span class="math inline"><em>t</em> = 1</span>, and so its operations must be debt financed.</p>
+<p>This not-quite-mirror symmetry between the defense production and insurance random variables suggests a tripartite contractual arrangement between the defense production firm, an insurance firm, and a firm acting as an arbitrageur. (We return to the characterization of the arbitrageur later in this section, e.g., how would you recognize a candidate arbitrageur in this context if you saw one?) For <span class="math inline"><em>t</em> &lt; <em>t</em><sub>0</sub></span>, the value flows of the tripartite arrangement look as displayed in Figure 2 below:</p>
+<br>
+<div class="flowchart-viewport">
+<div id="trilateral-contract-prewar" class="flowchart-container"></div>
+</div>
+<br>
+<p>From times <span class="math inline"><em>t</em><sub>0</sub> ≤ <em>t</em> &lt; <em>t</em><sub>1</sub></span>, the flows become more intricate as the arbitrageur now must first pay the insurance firm the lump sum of its payouts and then, in subsequent time periods, pay the cash flows required by BI:</p>
+<br>
+<div class="flowchart-viewport">
+<div id="trilateral-contract-during-war" class="flowchart-container"></div>
+</div>
+<br>
+<p>At the conclusion of the war (<span class="math inline"><em>t</em> ≥ <em>t</em><sub>1</sub></span>) and if Blue has won, the arbitrageur receives its payout:</p>
+<br>
+<div class="flowchart-viewport">
+<div id="trilateral-contract-post-war" class="flowchart-container"></div>
+</div>
+<br>
+<p>Integrating over time, the random cashflows associated with each of the three financial positions (BI, the insurance firm, and the arbitrageur) are summarized in the below table.</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Entity</th>
+<th>Cashflow random variable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Blue industry</td>
+<td><span class="math inline">$\sum_{t=1}^{t_0-1} (R_t - C_t)\beta_t + \sum_{t=t_0}^{t_1-1} (R_t - C_t) \beta_t +(1-f) \pi_F \beta_{t_1}$</span></td>
+</tr>
+<tr class="even">
+<td>Insurance firm</td>
+<td><span class="math inline">$K\beta_{t_0}-\sum_{t=1}^{t_0-1} R_t\beta_t$</span></td>
+</tr>
+<tr class="odd">
+<td>Arbitrageur</td>
+<td><span class="math inline">$f\pi_F\beta_{t_1}-K\beta_{t_0}-\sum_{t = t_0}^{t_1 - 1}R_t\beta_t$</span></td>
+</tr>
+</tbody>
+</table>
+<p>The random variable <span class="math inline"><em>t</em><sub>0</sub></span> is a function of the ability of private capital investment to be a source of (potentially perpetual) deterrence (a point to which we return later), policy deliberations and outcomes in Blue, and of course strategic decisions taking place in Red that can be only partially controlled by Blue. In comparison, the length of the war <span class="math inline"><em>δ</em><em>t</em> = <em>t</em><sub>1</sub> − <em>t</em><sub>0</sub></span> is affected largely by the quality of the factors of production in which capital is invested along with exogenous (for the purpose of this analysis) questions of operational and tactical competence by Red and Blue’s militaries; <em>ceteris paribus</em>, it seems likely that <span class="math inline"><em>δ</em><em>t</em></span> is monotone decreasing in the quantity of marginal value (to Blue) divided by marginal cost. Because of this, it seems that <span class="math inline"><em>t</em><sub>0</sub></span> is actually the more complex factor to analyze.</p>
+<p>Take the no-revenue form of BI’s cashflow random variable, Eq. 5, and fix <span class="math inline"><em>π</em><sub><em>F</em></sub></span>, <span class="math inline"><em>r</em><sub><em>t</em></sub></span>, and <span class="math inline"><em>C</em><sub><em>t</em></sub></span> constant. We solve for <span class="math inline"><em>t</em><sub>0</sub></span> such that it is still rational for BI to invest in a defense capacity, returning to the question of the tripartite arrangement shortly. The condition is now <br /><span class="math display">$$
+\frac{\pi_F}{(1+r)^{t_0 + \delta t}} - C\sum_{t=0}^{t_0 - 1}\left( \frac{1}{1+r} \right)^t &gt; 0.
+$$</span><br /> Putting <span class="math inline">$\beta = \frac{1}{1+r}$</span> and solving for <span class="math inline"><em>π</em><sub><em>F</em></sub></span>, the condition is <br /><span class="math display">$$
+\pi_F &gt; C \frac{1 - \beta^{t_0}}{1 - \beta} \beta^{-(t_0 + \delta t)} \tag{6}.
+$$</span><br /> Considered as a function of both <span class="math inline"><em>t</em><sub>0</sub></span> and of <span class="math inline"><em>r</em></span>, <span class="math inline"><em>π</em><sub><em>F</em></sub>(<em>t</em><sub>0</sub>, <em>r</em>)</span> grows extraordinarily quickly as either argument is increased and the other is held constant.</p>
+<p>Analysis of the effects of changes in the “risk-free” rate <span class="math inline"><em>r</em><sub><em>t</em></sub></span> on investment value is, in some sense, uninteresting; in our analysis framework, the effects of fluctuation of <span class="math inline"><em>r</em><sub><em>t</em></sub></span> on defense production are the same as they are on any other capital-intensive enterprise. To wit: differentiating Eq. 4 gives <br /><span class="math display">$$
+\frac{\partial \pi}{\partial r_t} = -\frac{1}{1+r_t} \left( \sum_{\tau = t}^{t_1 - 1}(R_\tau - C_\tau)\beta_\tau + \pi_F \beta_{t_1} \right) \tag{7},
+$$</span><br /> which is identical to the sensitivity of any other cash flow to interest rate change: the value of the investment decreases monotonically with an increase in the interest rate in period <span class="math inline"><em>t</em></span> as long as the cash flow in that period is positive (i.e., an increasing interest rate represents an increasing opportunity cost of investing in the project over the “risk-free” debt asset). This relationship suggests an incentive for BI to advocate for a decrease in the “risk-free” rate in the event of a war; in Section 4 we will demonstrate another incentive for a decrease in the “risk-free” rate is likely in the event of a war.</p>
+<p>We display valuations of the legs in the tripartite arrangement to BI, the insurer, and the arbitrageur in the following interactive simulation.</p>
+<br>
+<iframe src="multi-simulation-correlated.html" width="100%" height="1000px" frameborder="0">
+  Monte Carlo simulation of valuation of the legs of the tripartite arrangement for each party to the contract.
+</iframe>
+<br>
+<p>We examine the valuation of the arbitrageur’s leg of the tripartite arrangement more closely. The arbitrageur is unlikely to be risk-neutral. In addition to the obvious risk premium resulting from the uncertainty over the outcome of the war, potential lack of liquidity presents another risk to the arbitrageur. Some of this liquidity risk can be bought down with enough foresight or private information on the arbitrageur’s part; if the arbitrageur invests in the upstream supplier of parts at times <span class="math inline"><em>t</em> &lt; 1</span>, it can incorporate some of the dividends from the cashflows it will receive from the supplier at times <span class="math inline">1 ≤ <em>t</em> &lt; <em>t</em><sub>0</sub></span>, since the supplier will, in turn, be receiving cashflows from BI. In other words, in this slightly modified contractual structure, we see that – very indirectly! – the arbitrageur is acting as a reinsurer or the writer of a risk swap for the insurance firm.</p>
+<br>
+<div class="flowchart-viewport">
+<div id="trilateral-contract-prewar-private-info" class="flowchart-container"></div>
+</div>
+<br>
+<p>A financier experienced in liquid capital markets may be skeptical that an arbitrageur would actually participate in such a tripartite arrangement even if the expected value of the arrangement were demonstrably very high. Other concerns, the financier could reason, such as the obvious lack of liquidity for the arbitrageur from <span class="math inline"><em>t</em><sub>0</sub></span> through <span class="math inline"><em>t</em><sub>1</sub></span> (though see the previous paragraph), or the substantial risk created by the uncertain outcome of the war, could dominate the ultimate calculation. However, other financial communities are well-versed in making investments with uncertain, long time horizon payouts that can be both increased and pushed to the left with the development of revolutionary technology; this is exactly the characterization of a “deep tech” venture capital investment. The risk tolerance and nuance in geopolitical analysis required can be found in the macro special situations community (e.g., those with experience in the privatization of the Soviet state architecture) and in natural resource extraction (e.g., many oil and gas projects or mines in emerging or frontier markets). And though we treat “the arbitrageur” as a monolithic entity this need not be the case; a managing firm containing deep tech venture capital, macro special situations, and frontier market resource extraction investment expertise could guide a fund of many limited partners, many of whom could be ultra-high net worth persons or family offices seeking to diversity their portfolio and earn a possible very high return from an idiosyncratic event.</p>
+<p>We close this section with a summary of why the tripartite arrangement benefits all parties on the Blue side of the table – BI, the insurance firm, the arbitrageur, and Blue itself (we do not count the supplier in this enumeration as, presumably, it is indifferent to whether Blue or BI purchases its parts):</p>
+<ul>
+<li><strong>BI</strong>: benefits because it is receiving the spoils of victory <span class="math inline"><em>π</em><sub><em>F</em></sub></span> in addition to now being compensated for production as it is producing, rather than having to wait until the end of the war as in Eq. 5. Presumably BI is indifferent between the stream of cashflows between <span class="math inline"><em>t</em><sub>0</sub></span> and <span class="math inline"><em>t</em><sub>1</sub></span> coming from Blue or from a combination of the insurance firm and the arbitrageur (the risk of default by either of these entities can be computed and factored into the payments as necessary). In other words, BI has now gotten compensated as if Blue were paying for defense capabilities as is ordinary practice but will also receive an extra payoff if the war is resolved in favor of Blue.</li>
+<li><strong>Insurance firm</strong>: not all insurance firms would benefit from this arrangement, but many would. In particular, many property casualty insurance firms – e.g., those writing shipping or warehousing insurance – and reinsurers of property casualty firms will be hit with large, temporally and spatially correlated claims at the outbreak of war. The arbitrageur’s payout to the insurance firm on the event of war breaking out could, if properly designed, be perfectly anticorrelated with, and entirely offset, these losses.</li>
+<li><strong>Arbitrageur</strong>: similar to BI, the arbitrageur will receive part of the spoils of victory <span class="math inline"><em>π</em><sub><em>F</em></sub></span> on the event of the war being resolved in Blue’s favor. Recalling again the functional dependence of the random variables <span class="math inline"><em>t</em><sub>0</sub></span> and <span class="math inline"><em>t</em><sub>1</sub></span> on <span class="math inline"><em>I</em></span> and the arbitrageur’s <span class="math inline"><em>t</em> &lt; 1</span> decision to invest in the upstream supplier of parts to BI, we see that the arbitrageur is in a position to materially affect the duration of the war – ideally (for them) making <span class="math inline"><em>t</em><sub>1</sub> − <em>t</em><sub>0</sub></span> as small as possible to maximize the present value of its fraction of <span class="math inline"><em>π</em><sub><em>F</em></sub></span>.</li>
+</ul>
+<p>Indeed, the incentives created by this contractual structure are – from the point of view of maximizing human life and productive livelihood and minimizing conflict duration – in some respects ideal. The arbitrageur is incentivized to minimize the duration of the war, while the insurance firm is incentivized to minimize the amount of capital allocated to defense production (i.e., be maximally cost-effective – but subject to high operational effectiveness enforced by the arbitrageur’s due diligence). Blue has gotten its defense production without needing to raise funds from the public (i.e., without needing to raise taxes or issue bonds). War allowing no free lunch, the loser in this scenario is, decidedly, Red’s citizenry. We discuss the mechanisms by which Red’s property rights could be shifted to BI and the arbitrageur in Section 3.</p>
+<h3 id="the-spoils-of-war-or-detente">3. The spoils of war (or detente)</h3>
+<p>Thus far we have taken at face value the fact that, if the war is resolved in Blue’s favor, a (seemingly very large) payoff <span class="math inline"><em>π</em><sub><em>F</em></sub></span> will be routed from Red through Blue to BI, which, under certain contractual arrangements, will divide this payment between itself and an arbitrageur that partially or wholly paid for the defense production. In this section we will consider how <span class="math inline"><em>π</em><sub><em>F</em></sub></span> is to be found – what property rights would have to shift in order to acquire this capital, and how this capital is to be valued. We will also consider how these mechanisms could be modified so that Blue could credibly commit to not paying for (at least some of) its defense production even when a precisely specified war is not on the horizon. #### A defined conflict</p>
+<p>This case is conceptually very simple, though likely controversial in implementation. Suppose that, after a kinetic conflict, some number <span class="math inline"><em>N</em></span> of assets in Red were still productive. The rights to the cashflows from these assets could, in the event of Blue’s victory, be shifted from entities resident in Red to entities resident in Blue (i.e., BI, or BI’s financiers or legal representatives). At the end of the war, the valuation of these assets is simply <span class="math inline">$Y_{t&gt;t_1} = \sum_{n=1}^N\sum_{t=t_1}^{\infty}(R_{n,t} - C_{n,t})\beta^{(R)}_t$</span>, where <span class="math inline">$\beta^{(R)}_t = \prod_{s = t_1}^t \frac{1}{1+r_{t}^{(R)}}$</span> and <span class="math inline"><em>r</em><sub><em>t</em></sub><sup>(<em>R</em>)</sup></span> is the prevailing risk-free rate in Red at time <span class="math inline"><em>t</em></span> – a standard corporate finance calculation. Assessing the assets’ revenues and costs may be a challenge for some classes of asset; in the case of warfare between two developed peer nations, however, it is likely that the financial statements of the assets in Red were prepared according to internationally accepted accounting standards, somewhat reducing the burden of valuation.</p>
+<p>This concept, though simple, could be challenging to implement for at least four reasons.</p>
+<ul>
+<li>Blue’s legal system may form a barrier to implementation (e.g., it could treat the expropriation of Red’s assets as illegal).</li>
+<li>It is almost certainly not viable for BI to take ownership of <em>all</em> of the remaining assets in Red because this would almost certainly lead to mass protest in Red’s population, or at least be extremely unpopular and remain a point of contention for decades to come. (A potentially relevant historical analogy is the decades-long – indeed, ongoing – sentiment that the Opium Wars inspired in the Chinese populace.) What fraction is viable – or, more precisely, which assets’ ownership could be transferred without arousing unsustainable animosity among the Red population – would need to be studied in detail and is a task for intelligence analysts and experts in Red culture, not financiers.</li>
+<li>Even if financial statements of Red’s capital assets are prepared according to internationally accepted accounting standards, the passage of the war undoubtedly degraded the condition of the assets that remain functional upon its conclusion, complicating valuation.</li>
+<li>Depending on the post-war openness of Red’s economy, the character of its foreign exchange (FX) regime, and the professionalism of Red’s central bank or monetary authority, increasing ownership in foreign capital might create substantial FX risk for BI that they are ill-equipped to handle.</li>
+</ul>
+<p>The implementation of this property rights shift might masquerade as a different form of wealth transfer. For example, instead of actually transferring ownership of capital assets, Blue could force the capitulated Red to collect a surtax on capital gains that is then directly remitted to BI. #### Perpetuity</p>
+<p>An interesting and important consequence of Blue’s credibly committing to using income streams from a capitulated Red to pay for Bi’s private investment in defense capabilities is that the “certain war” may never actually happen. To see this, suppose that Blue has credible, multi-source intelligence that Red plans to go to war on a concrete timeline, but, unknown to Blue, Red’s motivation is not purely ideological but also at least partially economically motivated. Blue may then credibly commit to using income streams from Red, once Red is defeated, to pay BI. BI is then very motivated to develop the most lethal and cost-effective capabilities possible (to ensure that Red is actually defeated and they get paid) and, observing the unexpectedly high quality of the capabilities developed by BI, Red deescalates and indefinitely postpones or cancels its plans for the war.</p>
+<ul>
+<li>Scenario 1: If the war is truly canceled (at least, for as long as Red’s government remains in power), then BI is in a position of substantial malinvestment and will be at best exceptionally cross with Blue, likely precluding the possibility of Blue ever convincing BI to privately fund defense capabilities again. (At worst, BI could have a very strong case in civil court against Blue, recovering all of its expenses plus considerable damages from Blue.)</li>
+<li>Scenario 2: If Red indefinitely postpones but does not cancel the war, an interesting limit cycle can emerge: <span class="math inline"><em>A</em> → <em>B</em> → <em>C</em> → <em>D</em> → <em>A</em></span>, where <span class="math inline"><em>A</em>=</span> BI privately invests when Red plans to go to war on a concrete timeline; <span class="math inline"><em>B</em>=</span> Red postpones the war seeing that BI is developing lethal and cost-effective methods that have a substantially higher probability of defeating Red than the capabilities Blue would otherwise develop, <span class="math inline"><em>C</em>=</span> BI stops investing because intelligence eventually suggests that Red does not plan to go to war on a concrete timeline, and <span class="math inline"><em>D</em>=</span> Red, seeing that BI is no longer investing in lethal and cost-effective technology, begins to plan to go to war on a concrete timeline again. (We note that, from a “higher order” Red point of view, creating and maintaining this limit cycle is clearly in its best long-term economic interest because it is on net very destructive of capital in Blue if it can be perpetuated.)</li>
+</ul>
+<p>Because the entities involved in the tripartite arrangement are rational and profit-driven, if they are offered a contractual deal with Blue similar to those outlined in Section 2, they will rigorously assess the probability of Scenarios 1 and 2. If they assess there is any chance at all of Scenario 1 or 2 happening they are very unlikely to agree to privately fund defense production. To prevent this decidedly poor outcome, Blue must put a mechanism in place by which it can commit to providing the “spoils of detente” (or, less aggressively phrased, a peace dividend) to BI. A simple example of such a mechanism is, again, a tax on revenue or capital gains, though this time collected from non-aligned or Blue-domiciled entities doing business in areas that would be negatively affected if a war with Red actually broke out.</p>
+<p>How much should BI be paid for what is effectively a privately provided deterrent against a war with Red? There are at least three answers to this question depending in turn on the opportunity cost to BI of the war not breaking out, the marginal benefit provided by BI to Blue and/or the companies that would be negatively affected by a war with Red (to which we will refer as Green from now on), and the amount that Green are actually willing and able to pay. We address these possibilities in order.</p>
+<p>We consider the BI opportunity cost valuation first. Suppose that BI gets <span class="math inline"><em>π</em><sub><em>F</em></sub><em>β</em><sub><em>t</em><sub>1</sub></sub></span> if the war does occur and ends at <span class="math inline"><em>t</em><sub>1</sub></span> and, under the taxation of foreign entities mechanism, BI gets <span class="math inline">$\sum_{t=0}^\infty \pi_t\beta_t$</span> otherwise, where <span class="math inline"><em>π</em><sub><em>t</em></sub> = <em>R</em><sub><em>t</em></sub> − <em>C</em><sub><em>t</em></sub></span> is the nominal value that BI receives vis-a-vis Blue from the foreign entities in time period <span class="math inline"><em>t</em></span> (i.e., the total amount those foreign entities have been taxed minus transaction costs). (For simplicity we omitted the cost terms in BI’s cashflow random variable in the event that the war does occur; we can always replace these terms using Eq. 6, and they appear on both sides of the value calculation because, in order to create the deterrent to war with Red, BI must expend capital to produce the defense capability.) It is intuitive that <span class="math inline"><em>π</em><sub><em>t</em></sub></span> should be the value that makes BI indifferent between these cashflows. To see this more formally, write BI’s valuation of these cashflows as <br /><span class="math display">$$
+V(p) = p \pi_F\beta_{t_1} + (1-p)\sum_{t=0}^\infty \pi_t\beta_t,
+$$</span><br /> with <span class="math inline"><em>p</em></span> the probability that the war occurs and ultimately ends at <span class="math inline"><em>t</em><sub>1</sub></span>. For simplicity we will assume that <span class="math inline"><em>π</em><sub><em>t</em></sub> = <em>π</em></span> and <span class="math inline"><em>r</em><sub><em>t</em></sub> = <em>r</em></span> for the duration of the no-war case (thus setting <span class="math inline"><em>β</em><sub><em>t</em></sub> = <em>β</em><sup><em>t</em></sup></span>, where <span class="math inline">$\beta = \frac{1}{1 + r}$</span>). Supposing that BI has zero knowledge of whether the war will occur, their value function is <span class="math inline">$V = \int_0^1 dp\ V(p) = \frac{1}{2}\pi_F\beta_{t_1} + \frac{1}{2}\frac{\pi}{1 - \beta}$</span>, proving the claim. Thus, in this case, <br /><span class="math display"><em>π</em> = <em>π</em><sub><em>F</em></sub><em>β</em><sub><em>t</em><sub>1</sub></sub>(1 − <em>β</em>).</span><br /> For a sense of the size of the recurring payments <span class="math inline"><em>π</em></span>, take <span class="math inline"><em>r</em><sub><em>t</em><sub>1</sub></sub> ≈ 0.02</span>, <span class="math inline"><em>r</em> ≈ 0.04</span>, and <span class="math inline"><em>t</em><sub>1</sub> = 2</span> for a recurring payment of <span class="math inline"><em>π</em> ≈ 0.037<em>π</em><sub><em>F</em></sub></span>. With <span class="math inline"><em>π</em><sub><em>F</em></sub>≈</span> $25B (the estimated cost of the entire U.S. F-35 program in 2026, for a notional example) the recurring payment is <span class="math inline"><em>π</em>≈</span> $925M; spread out over multiple large corporate entities, this is an eminently doable sum.</p>
+<p>We next move to the valuation derived from the marginal value of the capabilities that BI develops. The fair value of a technology <span class="math inline"><em>γ</em></span> to Green or Blue should be just equal to the marginal benefit it provides to Green or Blue over not having it: <br /><span class="math display">$$
+\pi(\gamma) = \max_{a \in A(\gamma)} E_{z\sim p(z|\gamma)}[V(z,a)] - \max_{a\in A}E_{z\sim p(z)}[V(z,a)], \tag{8}
+$$</span><br /> where <span class="math inline"><em>A</em>(<em>γ</em>)</span> is Green’s or Blue’s action set with the new technology and <span class="math inline"><em>A</em></span> is Green’s or Blue’s action set without, <span class="math inline"><em>p</em>(<em>z</em>|<em>γ</em>)</span> is the world state probability with the new technology and <span class="math inline"><em>p</em>(<em>z</em>)</span> the world state probability without, and <span class="math inline"><em>V</em></span> is Green’s or Blue’s value function in monetary terms. (Though this value function may not be – indeed, almost certainly is not – monetary, we can always lower bound it by a monetary value function.) More concretely, suppose that Blue has a high-quality wargame environment or simulator available that both Green and Blue believe can accurately represent the effects and interactions of Blue’s and Red’s existing capabilities. Such an environment would contain multiple agents capable of robust planning under strategic uncertainty (e.g., reinforcement learning agents). Suppose the agents modeling Blue’s decision-making initially have access to a set of capabilities <span class="math inline"><em>Q</em> = {<em>q</em><sub>1</sub>, <em>q</em><sub>2</sub>, ...}</span> and, at any point in time, can take an action that is a function of an element of the power set of capabilities <span class="math inline">2<sup><em>Q</em></sup></span>. The new capability <span class="math inline"><em>γ</em></span> augments this set of capabilities and the agents can take an action that is a function of an element of the augmented power set <span class="math inline">2<sup><em>Q</em>′</sup></span>, where <span class="math inline"><em>Q</em>′ = <em>Q</em> ∪ {<em>γ</em>}</span>.</p>
+<p>The third “valuation” is really an upper bound – the maximal amount that Green does not consider to be so onerous that they at best refuse to pay and at worst become more closely allied with Red. This amount is situation-dependent; an analysis would stray from the theoretical nature of this paper and is best left for applied work. We further remark only that the estimation of this quantity is delicate and the risk measure involved is asymmetric.</p>
+<h3 id="credible-commitment">4. Credible commitment</h3>
+<p>We now return to a fundamental assumption we have made thus far. How – and why – would Blue credibly commit to not investing in its own defense capabilities? Under what conditions does this benefit both Blue and BI? We examine two cases: first, the most extreme case, in which Blue credibly commits to not investing in <em>any</em> of its own defense capabilities; and second, the case in which Blue credibly commits to not investing in <em>select</em> defense capabilities rather than <em>all</em> defense capabilities.</p>
+<h4 id="zero-public-sector-investment">Zero public sector investment?</h4>
+<p>Depending on Blue’s financial condition, credibly committing to not investing in its own defense capabilities <em>at all</em> might be straightforward: Blue might simply not be able to pay, or at least be unable to pay without causing terminally unpopular increases in taxation or devaluation of Blue’s currency.</p>
+<p>Increased investment in defense capabilities will cause inflation no matter if Blue or BI pay for it; both fiscal expansion and corporate investment cause inflation over the short term because they shift the aggregate demand curve for factor inputs to the right. When debt-financed, though, they are distinguished by their second-order effects. Debt-financed corporate investment is, in normal times, indirectly paid for by the purchaser of the corporate’s products. (In the case considered here debt-financed corporate investment would be paid for by the Red citizenry.) Fiscal expansion, however, is paid for by the taxpayer of either today (in increased taxation over the near term) or the distant future (in long-dated debt issuance which must be repaid at some point). If Blue is highly indebted, the cost of repaying a substantial increase in long-term debt could lead to politically nonviable increases in the level of taxation. To see this, assume that Blue’s debt service is high enough that Blue wishes to stabilize the debt-to-private-GDP ratio without cutting any government spending. (The private GDP is <span class="math inline"><em>Y</em> − <em>G</em> = <em>C</em> + <em>I</em> + <em>X</em> − <em>M</em></span>, where <span class="math inline"><em>Y</em></span> is total income, <span class="math inline"><em>C</em></span> is consumption, <span class="math inline"><em>I</em></span> is investment, <span class="math inline"><em>X</em></span> is exports, and <span class="math inline"><em>M</em></span> is imports.) The stabilizing tax rate is <br /><span class="math display">$$
+T = \frac{G + \Delta G}{Y - G} + (\bar{r}-g)\frac{D}{Y - G} \tag{9},
+$$</span><br /> where <span class="math inline"><em>G</em></span> is government spending, <span class="math inline"><em>Δ</em><em>G</em></span> is a shock to government spending (e.g., assuming that Blue initiates a large increase in defense expenditure), <span class="math inline"><em>r̄</em></span> is the long-run average effective interest rate on Blue government debt, <span class="math inline"><em>g</em></span> is the long-run real growth rate, and <span class="math inline"><em>D</em></span> is total Blue government debt. Using the United States as a notional example, we have <span class="math inline"><em>G</em>≈</span> $6.8T, <span class="math inline"><em>Y</em> − <em>G</em>≈</span> $31.1T - $6.8T = $24.3T, <span class="math inline"><em>r̄</em> ≈ 0.033</span>, <span class="math inline"><em>g</em> ≈ 0.018</span>, and <span class="math inline"><em>D</em>≈</span> $38T, all per U.S. Department of Treasury and Congressional Budget Office estimates. Hypothesizing a 100% increase in U.S. Department of Defense (DoD) spending in a notional scenario with today’s DoD spending at 3.4% of GDP, and hence setting <span class="math inline"><em>Δ</em><em>G</em>≈</span> $2.115T, puts the required tax rate at <span class="math inline"><em>T</em> ≈ 0.39</span>, a 129% increase in tax rate compared with today’s average <span class="math inline"><em>T</em> ≈ 0.17</span>. We leave the reader to speculate on the political viability of such a tax increase.</p>
+<p>Notably, even supposing that <span class="math inline"><em>Δ</em><em>G</em> = 0</span>, an eventual need to pay for the debt (in lieu of suffering a terminal inflationary spiral) almost certainly necessitates an eventual need to raise taxes. (In making this assertion, we are assuming that other sources of revenue for Blue, such as returns from a wealth fund or international trade levies, are unlikely to come close to the sum of government spending and debt service.) Using the empirical estimates from the previous paragraph as an example, the tax rate required to actually pay for U.S. federal spending is <span class="math inline"><em>T</em> ≈ 0.303</span>, which is “only” a 78% increase in tax rate compared with today’s average. In this case, being able to <em>reduce</em> the overall defense budget, and therefore lower the long-run required tax rate, is a complimentary reason for Blue’s government to favor at least partial private financing of defense procurement.</p>
+<p>We caution that the line of reasoning presented in this section coupled with the contractual structures we derived above could, in theory, generate bizarre and deeply perverse incentives and outcomes. A highly indebted Blue could foment a war with Red and use the contractual structures derived above, or similar, to credibly commit to entirely privately financing <em>all</em> defense capabilities for the duration of the war, resulting in a net reduction in Blue’s debt service over the term of the war. (The closest historical analogy to this odd hypothetical of which we are aware is Bulgaria’s entry into World War 1, which was financed by the German Reich, but it is not truly comparable.) #### Targeted private investment</p>
+<p>Though provocative (and economically viable and even, in some contexts, necessary for Blue to avoid a severe government financial crisis) a wholesale turnover of investment in defense capabilities to Blue’s private sector is not necessary for the contract structures we derived in this paper to be widely applicable in Blue’s defense procurement cycle and to be mutually beneficial to Blue and BI. Suppose that BI’s internal research and development (or, indeed, Blue’s research and development establishment) has developed new technology that BI claims could greatly increase the probability of victory in a war with Red. Blue’s decision whether to invest, defer compensation until after the technology has proven itself in war (and, at that time, likely compensate using cashflows derived from assets expropriated from Red), or reject the operational usage of the new technology outright is displayed in the following figure.</p>
+<br>
+<div class="flowchart-viewport">
+<div id="blue-tripartite-choice" class="flowchart-container"></div>
+</div>
+<br>
+<p>We model the effectiveness of the technology as increasing the probability that Blue wins the war by a constant factor <span class="math inline"><em>δ</em> &gt; 0</span>. Assume that Blue’s value function can be converted to monetary terms and further assume that Blue will invest a fixed amount <span class="math inline"><em>k</em></span> in the event that it does invest. We write Blue’s value function as <br /><span class="math display">$$
+\begin{aligned}
+V(\delta, k) &amp;= (p+\delta)(v(w) - k) + (1 - (p + \delta))(v(l) - k) - [p v(w) + (1-p)v(l)] \\
+&amp;= v(\delta) -k,
+\end{aligned}\tag{10}
+$$</span><br /> where we write <span class="math inline"><em>v</em>(<em>δ</em>) = <em>δ</em>(<em>v</em>(<em>w</em>) − <em>v</em>(<em>l</em>))</span>, and <span class="math inline"><em>v</em>(<em>w</em>)</span> is the value that Blue obtains from victory and likewise <span class="math inline"><em>v</em>(<em>l</em>)</span> is the value that Blue obtains from losing. If Blue does not have the option to defer compensation for the technology to a later date (e.g., by mortgaging the future cash flows of Red upon the successful conclusion of a war), it invests in the technology if <span class="math inline"><em>v</em>(<em>δ</em>) − <em>k</em> &gt; 0</span> (i.e., if <span class="math inline">$\delta &gt; \frac{k}{v(w) - v(l)}$</span>), and rejects investment otherwise. (The analysis can be extended to the case in which <span class="math inline"><em>δ</em> = <em>δ</em>(<em>k</em></span>), in which case the equation is <span class="math inline"><em>v</em>(<em>δ</em>(<em>k</em>)) − <em>k</em></span>, optimization of which results in solving <span class="math inline">$\frac{dv(\delta(k))}{d\delta(k)} = (\frac{d\delta(k)}{dk})^{-1}$</span> for <span class="math inline"><em>k</em></span>; this is interesting but matters little in the broader scope of this paper.) When Blue does have the option to defer compensation it is clearly optimal to do so as long as <span class="math inline"><em>δ</em> &gt; 0</span>, which is easily verifiable (e.g., a well-run research and development program can have as its primary objective to maximize <span class="math inline"><em>δ</em></span> and will rigorously evaluate metrics to ascertain if this is the case). We display a graphical summary of this result in the following figure.
+<br>
+<img src="./blue-optimal-dec-graphic.png" />
+<br>
+Delaying compensation for the technology also helps to solve the severe principal-agent problem that is ubiquitous in defense capability development; BI will get paid only if the technology <em>actually helps Blue win the war</em>, since the cashflow will originate from a capitulated Red, rather than get paid to create a veneer of readiness. A practical implementation of this result is, effectively, a modern reinterpretation of a letter of marque issued from Blue to BI.</p>
+<p>The simultaneous game between Blue and BI is surprisingly delicate, with equilibria depending on the value of <span class="math inline"><em>δ</em></span>. Eq. 9 demonstrates that Blue is incentivized to invest in technology for which <span class="math inline">$\delta &gt; \frac{k}{v(w) - v(l)}$</span>; if it is common knowledge to Blue and BI that <span class="math inline"><em>δ</em></span> meets this condition, the sole equilibrium of the game is that Blue invests in the technology and BI builds it using the capital invested by Blue (because if BI does not build the technology, presumably Blue will figure out a way to create the technology anyway, e.g., by creating a competitor to BI). On the contrary, if <span class="math inline">$0 &lt; \delta \leq \frac{k}{v(w) - v(l)}$</span>, Blue has no incentive to invest in the technology; the sole equilibrium of the game in this case is that Blue delays compensation for the technology and BI invests in the technology.</p>
+<p>Combining these equilibria and preconditions, and relaxing the restriction that the value of <span class="math inline"><em>δ</em></span> is common knowledge to Blue and BI, we find that there are at least two cases in which BI is likely to invest in the technology without an external commitment mechanism: the case in which the outcome of the war to Blue is fairly inconsequential compared to the capital required to invest in the new technology; and the case in which Blue truly believes <span class="math inline">$\delta \leq \frac{k}{v(w) - v(l)}$</span>, BI knows that Blue believes that, yet BI believes that <span class="math inline">$\delta &gt; \frac{k}{v(w) - v(l)}$</span>. However, a commitment mechanism outside the game structure is, in general, necessary to achieve the outcome that BI invests in the technology in the hope of delayed compensation.</p>
+<h3 id="conclusion">5. Conclusion</h3>
+<p>Private funding of defense production could be a powerful deterrent to peer conflict. Following the analysis of Section 3, Blue’s credible commitment to mortgaging a post-war Red’s capital stock to pay for operationally and cost-effective defense capabilities developed by Blue industry (BI) could convince Red not to move forward with a war against Blue. And Blue’s credible commitment to imposing a surtax on unaffiliated industry (Green) to compensate BI for defense capability creation in the case of peace of an uncertain length can ensure that BI’s defense capability creation is a financially sensible choice for BI regardless of the war’s occurrence.</p>
+<p>Many aspects of the proverbial public choice elephant in Blue’s war-room – that, to the extent that “Blue” (i.e., the government of the country that we have termed Blue) even has a unified value function, it certainly does not represent the views and financial interests of all of its citizens and, indeed, may represent the views of only a small minority – can, in theory, be mitigated by the contractual arrangements described in this paper. For example, with knowledge of an upcoming war at some stochastic time in the future, Blue could credibly commit to transferring from Red to BI (assuming a Blue victory) an amount <span class="math inline"><em>π</em>(<em>γ</em>)</span> for some autonomous technology <span class="math inline"><em>γ</em></span> that replaces the role of all forward-deployed humans in the war. This reduces both the Blue citizenry’s future tax burden and the personal and cultural pain of widespread loss of life (which is typically felt most heavily by the least advantaged in society). Yet globally, there is no free lunch. Red’s citizenry will pay dearly for Blue’s citizenry’s gain, and indeed Red’s citizenry has the potential to pay <em>much</em> more than they would otherwise (e.g., if <span class="math inline"><em>π</em><sub><em>F</em></sub></span> needs to be a substantial fraction of Red’s post-war GDP to compensate BI for its production and the arbitrageur for the risk that it took to finance that production).</p>
+<p>This analysis could be extended in multiple directions.
+<ol>
+    <li>
+        We treated BI as a monolithic entity in our analysis which is a gross simplification of reality. There are multiple possible decompositions of the defense production landscape and each may imply different incentive structures (e.g., publicly traded versus privately owned; maximizing share price versus maximizing owner dividend).
+    </li>
+    <li>
+        We provided theoretical arguments but did not empirically verify them. The utility of the novel contractual structures and requirements for commitment mechanisms presented in this paper should be evaluated in experiment, e.g., through experimental wargaming (repeated wargaming using a rigorous experimental design to reach a pre-specified level of statistical power).
+    </li>
+    <li>
+        More detailed statistical models of the joint distribution of the random variables described in Section 2 are required for the arbitrageur and insurance firm to properly price the tripartite contractual agreement.
+    </li>
+    <li>
+        The cultural and sociological factors determining the maximum amount of Red assets that can be transferred to BI without fomenting Red-society-wide unrest or rebellion are almost certainly complex and would require intensive study before such a transfer plan were put in place.
+    </li>
+</ol>
+ 
+</p>
+
+</div>
+
+<footer class="financial-disclaimer-footer">
+            <p class="disclaimer-title">Financial disclosure and disclaimer</p>
+            <small class="disclaimer-text">
+                The information provided in this article is for informational purposes only and is not intended to constitute financial, investment, legal, tax,
+                or other professional advice.
+                The content is prepared without consideration of individual circumstances, financial objectives, or risk tolerances,
+                and readers should not regard the information as a recommendation to buy, sell, or hold any specific securities, investments, or financial products.
+                Readers of this article are solely responsible for their own independent analysis, due diligence, and investment decisions.
+                We strongly advise consulting qualified financial professionals or other advisors before making investment decisions or acting on any
+                information provided in our materials.
+                The information and opinions provided are based on sources believed to be reliable and accurate at the time of publication.
+                However, David Rushing Dewhurst does not make any representation or warranty, express or implied, as to the accuracy, completeness, or timeliness of the information.
+                Markets, financial instruments, and macroeconomic conditions are inherently unpredictable, and past performance is not indicative of future results.
+                David Rushing Dewhurst does not accept liability for any losses, damages, or consequences arising from the use of its content or reliance on the information
+                contained herein.
+                Readers acknowledge that investment decisions carry inherent risks, including the risk of capital loss.
+                This disclaimer applies globally and shall be enforceable in jurisdictions where David Rushing Dewhurst operates.
+                Readers in all jurisdictions are responsible for ensuring compliance with local laws, rules, and regulations.
+                By accessing or using the information provided by David Rushing Dewhurst, users agree to the terms of this disclaimer.
+            </small>
+        </footer>
+
+<script>
+        
+        class Flowchart {
+            
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.nodes = new Map();
+                this.edgeRegistry = new Map();
+                this.arrowheadId = `arrowhead-${containerId}`;
+                this.arrowLength = 10;
+
+                // Create SVG
+                this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                this.svg.setAttribute('class', 'flowchart-svg');
+                this.container.appendChild(this.svg);
+                this._setupSvgDefs();
+            }
+
+            _setupSvgDefs() {
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', this.arrowheadId);
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '10');
+                marker.setAttribute('refX', '0'); marker.setAttribute('refY', '5');
+                marker.setAttribute('orient', 'auto');
+                const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                poly.setAttribute('points', '0 0, 10 5, 0 10');
+                poly.setAttribute('fill', 'currentColor');
+                marker.appendChild(poly);
+                defs.appendChild(marker);
+                this.svg.appendChild(defs);
+            }
+
+            createNode(id, label, xRel, yRel) {
+                const node = document.createElement('div');
+                node.id = `${this.container.id}-${id}`;
+                node.className = 'flowchart-node';
+                node.innerHTML = label;
+                
+                this.container.appendChild(node);
+                
+                const containerWidth = this.container.offsetWidth;
+                const containerHeight = this.container.offsetHeight;
+                const nodeWidth = node.offsetWidth;
+                const nodeHeight = node.offsetHeight;
+
+                const targetX = xRel * containerWidth;
+                const targetY = yRel * containerHeight;
+
+                let xPx = targetX - (nodeWidth / 2);
+                let yPx = targetY - (nodeHeight / 2);
+
+                xPx = Math.max(0, Math.min(xPx, containerWidth - nodeWidth));
+                yPx = Math.max(0, Math.min(yPx, containerHeight - nodeHeight));
+                
+                node.style.left = `${xPx}px`;
+                node.style.top = `${yPx}px`;
+                
+                this.nodes.set(id, node);
+                return node;
+            }
+
+            drawEdge(fromId, toId, label, pathType = 'straight') {
+                const fromNode = this.nodes.get(fromId);
+                const toNode = this.nodes.get(toId);
+                
+                if (!fromNode || !toNode) {
+                    console.error(`Cannot find nodes for edge: ${fromId} -> ${toId}`);
+                    return;
+                }
+
+                const x1 = fromNode.offsetLeft + fromNode.offsetWidth / 2;
+                const y1 = fromNode.offsetTop + fromNode.offsetHeight / 2;
+                const x2 = toNode.offsetLeft + toNode.offsetWidth / 2;
+                const y2 = toNode.offsetTop + toNode.offsetHeight / 2;
+                
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                
+                if (dx === 0 && dy === 0) return; 
+                
+                const len = Math.sqrt(dx*dx + dy*dy);
+                const ux_perp = -dy / len; 
+                const uy_perp = dx / len;  
+                const ux_line = dx / len; 
+                const uy_line = dy / len; 
+
+                const fromHalfW = fromNode.offsetWidth / 2;
+                const fromHalfH = fromNode.offsetHeight / 2;
+                const toHalfW = toNode.offsetWidth / 2;
+                const toHalfH = toNode.offsetHeight / 2;
+
+                let t_from = 0;
+                if (Math.abs(dx / fromHalfW) > Math.abs(dy / fromHalfH)) {
+                    t_from = fromHalfW / Math.abs(dx);
+                } else {
+                    t_from = fromHalfH / Math.abs(dy);
+                }
+                const x1_new = x1 + Math.sign(dx) * t_from * Math.abs(dx);
+                const y1_new = y1 + Math.sign(dy) * t_from * Math.abs(dy);
+
+                let t_to = 0;
+                if (Math.abs(dx / toHalfW) > Math.abs(dy / toHalfH)) {
+                    t_to = toHalfW / Math.abs(dx);
+                } else {
+                    t_to = toHalfH / Math.abs(dy);
+                }
+                const x2_new = x2 - Math.sign(dx) * t_to * Math.abs(dx);
+                const y2_new = y2 - Math.sign(dy) * t_to * Math.abs(dy);
+
+                const x2_final = x2_new - ux_line * this.arrowLength;
+                const y2_final = y2_new - uy_line * this.arrowLength;
+
+                const pairKey = [fromId, toId].sort().join('--');
+                const isReverse = this.edgeRegistry.has(pairKey);
+                if (!isReverse) {
+                    this.edgeRegistry.set(pairKey, true);
+                }
+                let effectivePathType = (isReverse && pathType !== 'elbow') ? 'curvy' : pathType;
+
+                let pathString = '';
+                let labelX = (x1 + x2) / 2;
+                let labelY = (y1 + y2) / 2;
+
+                switch (effectivePathType) {
+                    case 'elbow':
+                        const midX = x2;
+                        pathString = `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2}`;
+                        labelX = midX;
+                        labelY = (y1 + y2) / 2;
+                        break;
+                    
+                    case 'curvy':
+                        const curveAmount = isReverse ? 40 : -40; // Bend amount
+                        const controlX = (x1 + x2) / 2 + ux_perp * curveAmount;
+                        const controlY = (y1 + y2) / 2 + uy_perp * curveAmount;
+                        
+                        pathString = `M ${x1_new} ${y1_new} Q ${controlX} ${controlY}, ${x2_final} ${y2_final}`;
+                        labelX = controlX;
+                        labelY = controlY - 5; 
+                        break;
+                    
+                    case 'straight':
+                    default:
+                        pathString = `M ${x1_new} ${y1_new} L ${x2_final} ${y2_final}`;
+                        break;
+                }
+
+                if (pathString) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', pathString);
+                    path.setAttribute('class', 'flowchart-edge');
+                    path.setAttribute('marker-end', `url(#${this.arrowheadId})`);
+                    this.svg.appendChild(path);
+                }
+
+                if (label) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', labelX);
+                    text.setAttribute('y', labelY - 5);
+                    text.setAttribute('class', 'edge-label');
+                    text.textContent = label;
+                    this.svg.appendChild(text);
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const bi_inv = new Flowchart('bi-basic-decision');
+            bi_inv.createNode('bi', 'Blue industry', 0.5, 0.1);
+            bi_inv.createNode('nature1', 'Nature', 0.3, 0.4);
+            bi_inv.drawEdge('bi', 'nature1', 'Invest', 'straight');
+
+            bi_inv.createNode('viw', 'V(i,w)', 0.2, 0.7);
+            bi_inv.drawEdge('nature1', 'viw', 'p', 'straight');
+            bi_inv.createNode('vil', 'V(i,l)', 0.4, 0.7);
+            bi_inv.drawEdge('nature1', 'vil', '1-p', 'straight');
+
+            bi_inv.createNode('nature2', 'Nature', 0.7, 0.4);
+            bi_inv.drawEdge('bi', 'nature2', 'Don\'t invest', 'straight');
+            bi_inv.createNode('vnw', 'V(di,w)', 0.6, 0.7);
+            bi_inv.drawEdge('nature2', 'vnw', 'q', 'straight');
+            bi_inv.createNode('vnl', 'V(di,l)', 0.8, 0.7);
+            bi_inv.drawEdge('nature2', 'vnl', '1-q', 'straight');
+            
+            const trc_pre = new Flowchart('trilateral-contract-prewar');
+            trc_pre.createNode("supplier", "Supplier", 0.1, 0.1);
+            trc_pre.createNode("bi", "Blue industry", 0.1, 0.4);
+            trc_pre.createNode("blue", "Blue", 0.4, 0.7);
+            trc_pre.createNode("if", "Insurance firm", 0.5, 0.1);
+            trc_pre.createNode("a", "Arbitrageur", 0.5, 0.4);
+
+            trc_pre.drawEdge("bi", "supplier", "$", 'straight');
+            trc_pre.drawEdge('supplier', "bi", "parts", 'straight');
+            trc_pre.drawEdge("bi", "blue", "Defense production", 'straight');
+            trc_pre.drawEdge('if', 'bi', "$", 'straight');
+
+            const trc_during = new Flowchart('trilateral-contract-during-war');
+            trc_during.createNode("supplier", "Supplier", 0.1, 0.1);
+            trc_during.createNode("bi", "Blue industry", 0.1, 0.4);
+            trc_during.createNode("blue", "Blue", 0.4, 0.7);
+            trc_during.createNode("if", "Insurance firm", 0.5, 0.1);
+            trc_during.createNode("a", "Arbitrageur", 0.5, 0.4);
+
+            trc_during.drawEdge("bi", "supplier", "$", 'straight');
+            trc_during.drawEdge('supplier', "bi", "parts", 'straight');
+            trc_during.drawEdge("bi", "blue", "Defense production", 'straight');
+            trc_during.drawEdge('a', 'if', "$", 'straight');
+            trc_during.drawEdge('a', 'bi', "$", 'straight');
+
+            const trc_post = new Flowchart('trilateral-contract-post-war');
+            trc_post.createNode("supplier", "Supplier", 0.1, 0.1);
+            trc_post.createNode("bi", "Blue industry", 0.1, 0.4);
+            trc_post.createNode("blue", "Blue", 0.4, 0.7);
+            trc_post.createNode("if", "Insurance firm", 0.5, 0.1);
+            trc_post.createNode("a", "Arbitrageur", 0.5, 0.4);
+
+            trc_post.drawEdge("blue", "bi", "$", 'straight');
+            trc_post.drawEdge('bi', 'a', "$", 'straight');
+
+            const trc_private = new Flowchart("trilateral-contract-prewar-private-info");
+            trc_private.createNode("supplier", "Supplier", 0.1, 0.1);
+            trc_private.createNode("bi", "Blue industry", 0.1, 0.4);
+            trc_private.createNode("blue", "Blue", 0.4, 0.7);
+            trc_private.createNode("if", "Insurance firm", 0.5, 0.1);
+            trc_private.createNode("a", "Arbitrageur", 0.5, 0.4);
+
+            trc_private.drawEdge("bi", "supplier", "$", 'straight');
+            trc_private.drawEdge('supplier', "bi", "parts", 'straight');
+            trc_private.drawEdge("bi", "blue", "Defense production", 'straight');
+            trc_private.drawEdge('if', 'bi', "$", 'straight');
+            trc_private.drawEdge('supplier', 'a', '$', 'straight');
+
+            const blue_choice = new Flowchart("blue-tripartite-choice");
+            blue_choice.createNode('blue', 'Blue', 0.5, 0.1);
+            blue_choice.createNode('nature1', 'Nature', 0.2, 0.4);
+            blue_choice.createNode('nature2', 'Nature', 0.5, 0.4);
+            blue_choice.createNode('nature3', 'Nature', 0.8, 0.4);
+
+            blue_choice.drawEdge('blue', 'nature1', 'Invest', 'straight');
+            blue_choice.drawEdge('blue', 'nature2', 'Defer', 'straight');
+            blue_choice.drawEdge('blue', 'nature3', 'Reject', 'straight');
+
+            blue_choice.createNode('viw', 'V(i,w)', 0.1, 0.7);
+            blue_choice.createNode('vil', 'v(i,l)', 0.3, 0.7);
+            blue_choice.createNode('vdw', 'v(d,w)', 0.4, 0.7);
+            blue_choice.createNode('vdl', 'v(d,l)', 0.6, 0.7);
+            blue_choice.createNode('vrw', 'v(r,w)', 0.7, 0.7);
+            blue_choice.createNode('vrl', 'v(r,l)', 0.9, 0.7);
+
+            blue_choice.drawEdge('nature1', 'viw', 'p + δ', 'straight');
+            blue_choice.drawEdge('nature1', 'vil', '1 - (p + δ)', 'straight');
+            blue_choice.drawEdge('nature2', 'vdw', 'p + δ', 'straight');
+            blue_choice.drawEdge('nature2', 'vdl', '1 - (p + δ)', 'straight');
+            blue_choice.drawEdge('nature3', 'vrw', 'p', 'straight');
+            blue_choice.drawEdge('nature3', 'vrl', '1 - p', 'straight');
+        
+        });
+
+    </script>
+
+</body>
+</html>

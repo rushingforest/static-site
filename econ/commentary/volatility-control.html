@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | geoeconomics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/econ.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+   <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+      messageStyle: "none"
+    });
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="./index.html">up</a></li>
+              <li><a href="../index.html">geoeconomics</a></li>
+              <li><a href="../../prob/index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+    
+<div class="container-fluid" id="econ-home">
+    <h2>geoeconomics | commentary | volatility control</h2>
+    <p>For no apparent reason at all, one day we might wake up and decide that we want to control the overall volatility of a market for a particular asset. If we need a reason, it’s because we are long a volatility instrument and want to make money – that makes sense. This task sounds difficult, and it sounds particularly hard if we want to do it algorithmically. Thankfully, we remember that the volatility of an asset is often deffined via reference to its options price. <em>Ceteris paribus</em>, the higher the volatility of an asset, the higher the price of an option on the asset. The actual functional relationship between the two is called the implied volatility; the volatility of the asset that is implied by the relationship between the asset’s price and the price of an option on the asset.</p>
+<p>So, without too much loss of generality (“w2mlog” from now on), let’s consider an evolving options price:</p>
+<p><span class="math display">\[
+dV = \mu(V)\ dt + s(V)\ dW_t,\ V(0) = V_0.
+\]</span> If you cared (and you do), you could estimate <span class="math inline">\(\mu\)</span> and <span class="math inline">\(s\)</span> from historical options data in the usual way. It would be wrong and the fit wouldn’t be great because you would be using a normal model, but you could do it, and you can bet that other people will, too. Alternatively, you could use your favorite relevant analytical asset price model, e.g. Black-Scholes, Black 76, etc., and apply Ito’s lemma to recover the option price evolution equation.</p>
+<p>Anyway, we want to control the options price – for the sake of argument, let’s say we want to set it to be an arbitrary price level <span class="math inline">\(y(t)\)</span> where we will assume that <span class="math inline">\(y(t) \gg V_0\)</span>. We reach back to our market microstructure upbringing and recall that, for a wide variety of asset types <a href="https://arxiv.org/pdf/1602.03043">including options</a>, the square-root “law” of price impact holds. This says that the change in price an asset <span class="math inline">\(|\Delta X|\)</span> is proportionate to the square root of the relative size of a meta-order, scaled by the volatility of the asset: <span class="math display">\[
+|\Delta X| \propto \mathrm{vol}(X) \left|\frac{n}{N} \right|^{1/2}.
+\]</span> Supposing we measure everything on the timescale of <span class="math inline">\(dt\)</span>, this means we can define an abstract “action” variable <span class="math inline">\(a_t = \varepsilon_t |n_t / N|^{1/2}\)</span>, where <span class="math inline">\(\varepsilon_t \in \{-1, 1\}\)</span> indicates the side of the book the order is placed on, and write the controlled form of the options price evolution equation: <span class="math display">\[
+dV = [\mu(V) + s(V) a_t]\ dt + s(V)\ dW_t,\ V(0) = V_0.
+\]</span> Let’s first solve a relatively simple problem: finding the optimal control to maximize the probability that we achieve the price path <span class="math inline">\(y(t)\)</span>. In other words, we will solve <span class="math inline">\(\max_a \log p(V=y|\cdots)\)</span>, where we have omitted the dependencies on <span class="math inline">\(\mu\)</span> and <span class="math inline">\(s\)</span> explicitly. Discretizing the evolution equation using a first-order scheme, we’re solving <span class="math display">\[
+\max_a \sum_{t=1}^T -\frac{1}{2}\left\{\frac{y_t - [V_{t-1} + \mu(V_{t-1}) + s(V_{t-1})a_t]\delta t}{s(V_{t-1})\delta t^{1/2}} \right\}^2,
+\]</span> and upon differentiating, setting the result equal to zero, and doing algebra that is supposed to be easy but still takes me too long, results in an optimal action of <span class="math display">\[
+a_t = \frac{1}{s(V_{t-1})}\left[ \frac{y_t - V_{t-1}}{\delta t} - \mu (V_{t-1}) \right] \rightarrow_{\delta t \rightarrow 0^+} \frac{1}{s(V)}\left[\frac{dV}{dt}\Bigg|_{V(t) = y(t)} - \mu(V) \right].
+\]</span> In words, this is saying that the optimal strategy is to add/subtract from the mean trajectory of the options price as required to meet the specified target while controlling for the fact that it will be much harder to do this when the options vol is low. Makes sense.</p>
+<p>A more realistic problem accounts for the fact that we don’t have infinite money. (Oh well.) The cost of executing the above strategy is the appropriately signed number of contracts that are bought (positive cost) or sold (negative cost) multiplied by the execution price integrated over time: <span class="math display">\[
+\mathrm{Cost} = \int_0^T dt\ V(t)\ \varepsilon(t)\ n(t) = N\int_0^Tdt\ V(t)\ a(t)^2 \approx N\sum_{t=1}^T V_{t-1}a_t^2 \delta t,
+\]</span> where I elided the side of the order and we used <span class="math inline">\(V_{t-1}\)</span> as a stand-in for the actual execution price of the executed orders, which will actually be some convex combination of <span class="math inline">\(V_{t-1}\)</span> and <span class="math inline">\(V_t\)</span>. (You could change this in the resulting derivation, e.g. setting the execution price to <span class="math inline">\(\frac{V_t - V_{t-1}}{2}\)</span>, and the analysis wouldn’t change too much. In application we have to also be cognizant that our orders could execute outside the spread, and indeed in an increased volatility regime, which these orders would be actively creating, execution outside the spread is more likely to happen.) Now we’re solving the constrained problem <span class="math display">\[
+\max_a \log p(V=y|\cdots)\ \mathrm{subject \ to}\ N\sum_{t=1}^T V_{t-1} a_t^2 \leq C_{\max}.
+\]</span> Introducing a Lagrange multiplier, differentiating, setting equal to zero, and solving again, we have now <span class="math display">\[
+a_t = \frac{1}{s(V_{t-1})}\frac{1}{1 + \lambda N V_{t-1}}\left[ \frac{y_t - V_{t-1}}{\delta t} - \mu (V_{t-1}) \right].
+\]</span></p>
+<p>This expression is important because it’s pretty easy to implement and allows us to modulate the implementation for how much we’re willing to spend to try to set the options price.</p>
+<h1 id="simulation">Simulation</h1>
+<p>The proof is in the pudding. Before we try the control function we developed in real markets (which we might do as part of a quant strategy in a relatively liquid asset purely for the purposes of profit-making, obviously) we would like to try it in simulation. It’s probably most instructive to assess if this strategy works in a relatively realistic simulation that includes market microstructure, not just in the context of a theoretical model ala Black-Scholes. To accomplish this, I used a market microstructure framework I implemented an embarrassingly long time ago (now seven years ago – I wrote the first draft of the framework on my honeymoon…my blushing bride was unimpressed by my task prioritization, to say the least). The <a href="https://gitlab.com/drdewhurst/verdantcurve">core simulation code</a> is open sourced, but the agent that implements the strategy derived above isn’t. (I can send the price control agent source code to select parties on request.) There are a variety of other “background” agent strategies implemented, including <a href="http://cadia.ru.is/wiki/_media/public:i-700-abms-07-1:gode_and_sunder_1993_jpe_allocative_efficiency.pdf">noise traders</a>, <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/1540-6261.00502">momentum</a> and mean-reversion traders, basic <a href="https://www.aeaweb.org/articles?id=10.1257/aer.97.2.210">market makers</a> (ala inventory minimization strategies), and quant strategies that learn from past performance (implemented as neural networks that update using <a href="https://arxiv.org/abs/1703.03864">evolutionary computation methods</a>). Importantly, this simulation codebase was written as a testbed for market microstructure research, so there’s no mechanism for discovery of fundamental value (and, concomitantly, more work needs to be done on incorporating perception of fundamental value into quantitative volatility and price control strategies).</p>
+<p><img src="FW-test-control-20250718.png" /></p>
+<p>An example of the implemented strategy in a market consisting of noise traders and market makers is displayed in Figure 1. The control strategy turned on 2/5 of the way through a market period (analogous to a day) and was set to increase the price of an asset to a specified level. It performed as expected, raising the price of the asset and maintaining it stochastically around the desired level. The results of running multiple (<span class="math inline">\(n=100\)</span>) trials, displayed in Figure 2, demonstrates substantial evidence that the success of the control demonstrated in Figure 1 is not a result of random chance.</p>
+<p><img src="FW-test-price-levels-20250718.png" /></p>
+<p>The average price trajectory before the application of control differs substantially from the average value of the price trajectory after the application of control. No, I didn’t test it for statistical significance because <strong>have you looked at the figure</strong>, but if you want to there a ton of ways to do it; the most straightforward is to measure the Jensen-Shannon divergence between the distributions.</p>
+<p>What’s next?</p>
+<ul>
+<li>This note provides substantive evidence that controlling the price of an asset is feasible in a market dominated by microstructure effects but devoid of significant fundamental value. Incorporation of fundamental value is important but difficult. Incorporation of social network dynamics and/or linkage with a slower timescale sector economic model are viable approaches.</li>
+<li>The asset controlled here is an arbitrary, abstract asset. However, our original concern was with controlling the volatility of an underlying asset by controlling the price level of an option. Though options prices and underlying volatility are related, they’re not the same thing. A microstructure-level model that connects dynamics of the underlying with an option on the underlying would increase confidence that these results carry over to the original scenario of interest.</li>
+</ul>
+</div>
+
+</body>
+</html>

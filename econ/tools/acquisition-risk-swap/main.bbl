@@ -1,0 +1,13 @@
+\begin{thebibliography}{SHGS15}
+
+\bibitem[BK84]{benjamin1984war}
+Daniel~K Benjamin and Levis~A Kochin.
+\newblock {W}ar, {P}rices, and {I}nterest {R}ates: A {M}artial {S}olution to {G}ibson's {P}aradox.
+\newblock 1984.
+
+\bibitem[SHGS15]{schaul2015universal}
+Tom Schaul, Daniel Horgan, Karol Gregor, and David Silver.
+\newblock Universal value function approximators.
+\newblock In {\em International conference on machine learning}, pages 1312--1320. PMLR, 2015.
+
+\end{thebibliography}
