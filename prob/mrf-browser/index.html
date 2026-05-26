@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mrf-browser</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>mrf-browser</h1>
+            <p class="subtitle">
+                define <a href="https://en.wikipedia.org/wiki/Markov_random_field">markov random fields</a> and perform inference over them.
+            </p>
+        </header>
+
+        <!-- Section 1: Variables -->
+        <section class="panel" id="variables-panel">
+            <h2>Variables</h2>
+            <div class="form-row">
+                <input type="text" id="var-name" placeholder="Variable name (e.g., Weather)">
+                <input type="text" id="var-levels" placeholder="Levels (comma-separated, e.g., sunny, rainy, cloudy)">
+                <button id="btn-add-var" class="btn btn-primary">+ Add Variable</button>
+            </div>
+            <div id="error-var" class="error-message"></div>
+            <ul id="var-list" class="item-list"></ul>
+        </section>
+
+        <!-- Section 2: Factors -->
+        <section class="panel" id="factors-panel">
+            <h2>Factors</h2>
+            <div class="form-row">
+                <select id="factor-type">
+                    <option value="unary">Univariate</option>
+                    <option value="binary">Bivariate</option>
+                </select>
+            </div>
+            
+            <!-- Univariate form -->
+            <div id="unary-form" class="factor-form">
+                <div class="form-row">
+                    <select id="unary-var"></select>
+                    <input type="text" id="unary-entries" placeholder="Entries (e.g., rainy=5, sunny=2)">
+                    <button id="btn-add-unary" class="btn btn-primary">+ Add Factor</button>
+                </div>
+            </div>
+
+            <!-- Bivariate form -->
+            <div id="binary-form" class="factor-form hidden">
+                <div class="form-row">
+                    <select id="binary-var1"></select>
+                    <select id="binary-var2"></select>
+                    <input type="text" id="binary-entries" placeholder="Entries (e.g., rainy,sad=3, sunny,happy=4)">
+                    <button id="btn-add-binary" class="btn btn-primary">+ Add Factor</button>
+                </div>
+            </div>
+
+            <div id="error-factor" class="error-message"></div>
+            <ul id="factor-list" class="item-list"></ul>
+        </section>
+
+        <!-- Section 3: Evidence -->
+        <section class="panel" id="evidence-panel">
+            <h2>Evidence</h2>
+            <div class="form-row">
+                <select id="evidence-var"></select>
+                <select id="evidence-level"></select>
+                <button id="btn-set-evidence" class="btn btn-primary">+ Set Evidence</button>
+            </div>
+            <div id="error-evidence" class="error-message"></div>
+            <ul id="evidence-list" class="item-list"></ul>
+        </section>
+
+        <!-- Section 4: Inference Controls -->
+        <section class="panel" id="controls-panel">
+            <h2>Inference</h2>
+            <div class="form-row">
+                <label>Iterations:</label>
+                <input type="number" id="iterations" value="20" min="1" max="1000" style="width: 80px;">
+                <button id="btn-infer" class="btn btn-success">▶ Run Inference</button>
+                <button id="btn-reset" class="btn btn-danger">Reset All</button>
+            </div>
+            <div id="loading" class="hidden">Loading WASM...</div>
+        </section>
+
+        <!-- Section 5: Results -->
+        <section class="panel" id="results-panel">
+            <h2>Results</h2>
+            <div id="results-container"></div>
+        </section>
+    </div>
+
+    <!-- Then load app logic -->
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
