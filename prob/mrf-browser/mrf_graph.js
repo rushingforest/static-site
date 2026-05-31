@@ -26,6 +26,8 @@ export class MRFGraph {
         const dim = values.length;
         const factorPtr = this.Module.new_factor1d(dim);
 
+        console.log(`📊 Setting Prior for Node ${nodeId}:`, values);
+
         for (let i = 0; i < dim; i++) {
             this.Module.set_factor1d_at(factorPtr, i, values[i]);
         }

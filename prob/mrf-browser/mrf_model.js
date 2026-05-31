@@ -115,12 +115,6 @@ export class MRFModel {
 
     // ---- Factor Management ----
 
-    /**
-     * Adds a sparse univariate factor.
-     * @param {string} variable - Variable name.
-     * @param {Object} entries - Map of levelName -> value. Unspecified levels default to 1.0.
-     * @returns {number} Index of the added factor (for deletion).
-     */
     addUnaryFactor(variable, entries) {
         if (!this.variables.has(variable)) {
             throw new Error(`Variable "${variable}" not found.`);
@@ -128,17 +122,20 @@ export class MRFModel {
         this._validateUnaryEntries(variable, entries);
 
         const entryMap = new Map(Object.entries(entries));
+        
+        // Check if a factor already exists for this variable
+        const existingIndex = this.unaryFactors.findIndex(f => f.variable === variable);
+        if (existingIndex !== -1) {
+            // Replace existing
+            this.unaryFactors[existingIndex] = { type: 'unary', variable, entries: entryMap };
+            return existingIndex;
+        }
+        
+        // Add new
         this.unaryFactors.push({ type: 'unary', variable, entries: entryMap });
         return this.unaryFactors.length - 1;
     }
 
-    /**
-     * Adds a sparse bivariate factor.
-     * @param {string} var1 - First variable name.
-     * @param {string} var2 - Second variable name.
-     * @param {Object} entries - Map of "level1,level2" -> value. Unspecified pairs default to 1.0.
-     * @returns {number} Index of the added factor (for deletion).
-     */
     addBinaryFactor(var1, var2, entries) {
         if (!this.variables.has(var1)) {
             throw new Error(`Variable "${var1}" not found.`);
@@ -152,6 +149,18 @@ export class MRFModel {
         this._validateBinaryEntries(var1, var2, entries);
 
         const entryMap = new Map(Object.entries(entries));
+        
+        // Check if a factor already exists for this variable pair
+        const existingIndex = this.binaryFactors.findIndex(
+            f => (f.var1 === var1 && f.var2 === var2) || (f.var1 === var2 && f.var2 === var1)
+        );
+        if (existingIndex !== -1) {
+            // Replace existing
+            this.binaryFactors[existingIndex] = { type: 'binary', var1, var2, entries: entryMap };
+            return existingIndex;
+        }
+        
+        // Add new
         this.binaryFactors.push({ type: 'binary', var1, var2, entries: entryMap });
         return this.binaryFactors.length - 1;
     }
@@ -209,11 +218,17 @@ export class MRFModel {
      * @returns {Map<string, Map<string, number>>} variableName -> (levelName -> probability)
      */
     async infer(iterations = 20) {
+
+        console.log("🚀 INFERENCE STARTED");
+        console.log("Variables:", Array.from(this.variables.keys()));
+        console.log("Unary Factors:", this.unaryFactors.length);
+        console.log("Binary Factors:", this.binaryFactors.length);
+
         if (this.variables.size === 0) {
             throw new Error('No variables defined. Add at least one variable before inference.');
         }
 
-        // Compute degree for each variable (number of bivariate factors it participates in)
+        // Compute degree for each variable
         const degrees = this._computeDegrees();
 
         // Build the graph
@@ -227,8 +242,7 @@ export class MRFModel {
                 if (degree === 0) {
                     throw new Error(
                         `Variable "${name}" has degree 0 (no bivariate factors). ` +
-                        `Isolated variables are not supported by the BP algorithm. ` +
-                        `Connect it to at least one other variable.`
+                        `Isolated variables are not supported. Connect it to at least one other variable.`
                     );
                 }
                 graph.addNode(info.id, degree, info.levels.size);
@@ -236,10 +250,23 @@ export class MRFModel {
             }
 
             // 2. Create and connect unary factors
-            for (const factor of this.unaryFactors) {
-                const info = this.variables.get(factor.variable);
+            // FIX: Ensure EVERY node has a prior, even if the user didn't specify one.
+            for (const [name, info] of this.variables) {
                 const dim = info.levels.size;
-                const dense = this._expandUnary(factor, dim);
+                
+                // Check if the user defined a factor for this variable
+                const userFactor = this.unaryFactors.find(f => f.variable === name);
+                
+                let dense;
+                if (userFactor) {
+                    // Use the user's sparse factor
+                    dense = this._expandUnary(userFactor, dim);
+                } else {
+                    // AUTO-GENERATE: Uniform prior (all 1.0)
+                    dense = new Array(dim).fill(1.0);
+                    console.log(`ℹ️ Auto-generated uniform prior for ${name}`);
+                }
+                
                 graph.setPrior(info.id, dense);
             }
 
@@ -263,7 +290,7 @@ export class MRFModel {
             // 5. Run BP
             graph.runBeliefPropagation(nodeIds, iterations);
 
-            // 6. Extract marginals and map back to string names
+            // 6. Extract marginals
             const marginals = new Map();
             for (const [name, info] of this.variables) {
                 const probs = graph.getMarginal(info.id);
@@ -279,7 +306,6 @@ export class MRFModel {
             return marginals;
 
         } finally {
-            // Always destroy the graph to prevent memory leaks
             graph.destroy();
         }
     }

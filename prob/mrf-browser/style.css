@@ -252,3 +252,517 @@ header h1 {
         margin-top: 5px;
     }
 }
+
+/* --- View Tabs --- */
+.view-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #7f8c8d;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+}
+
+.tab-btn.active {
+    color: #2c3e50;
+    border-bottom-color: #3498db;
+    font-weight: bold;
+}
+
+/* --- View Containers --- */
+.view-container {
+    /* Existing panels are already styled */
+}
+
+.view-container.hidden {
+    display: none;
+}
+
+/* --- Graph View Layout --- */
+.graph-layout {
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.graph-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ecf0f1;
+    gap: 10px;
+}
+
+.spacer {
+    flex: 1;
+}
+
+.graph-canvas-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    background-color: #fff;
+}
+
+#mrf-canvas {
+    display: block;
+    cursor: grab;
+}
+
+#mrf-canvas:active {
+    cursor: grabbing;
+}
+
+.graph-sidebar {
+    width: 300px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-left: 1px solid #ecf0f1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.graph-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+#sidebar-content {
+    flex: 1;
+}
+
+.hint {
+    color: #7f8c8d;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* --- Graph Elements --- */
+.node-rect {
+    fill: #3498db;
+    stroke: #2980b9;
+    stroke-width: 2;
+    rx: 8;
+    ry: 8;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.node-rect:hover {
+    filter: brightness(1.1);
+    stroke-width: 3;
+}
+
+.node-rect.selected {
+    stroke: #e67e22;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 5px rgba(230, 126, 34, 0.5));
+}
+
+.node-rect.evidence {
+    stroke: #27ae60;
+    stroke-width: 3;
+}
+
+.node-text {
+    fill: white;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+
+.edge-line {
+    stroke: #95a5a6;
+    stroke-width: 2;
+    fill: none;
+    cursor: pointer;
+    transition: stroke 0.2s;
+}
+
+.edge-line:hover {
+    stroke: #3498db;
+    stroke-width: 3;
+}
+
+.edge-line.selected {
+    stroke: #e67e22;
+    stroke-width: 3;
+}
+
+/* --- Sidebar Inputs --- */
+#sidebar-content input[type="number"] {
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: 100%;
+}
+
+#sidebar-content table {
+    font-size: 0.9rem;
+}
+
+#sidebar-content th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+/* Link Mode Cursor */
+#mrf-canvas.link-mode {
+    cursor: crosshair !important;
+}
+
+/* Preview Line Style */
+#preview-line {
+    stroke: #e67e22;
+    stroke-width: 3;
+    stroke-dasharray: 5, 5;
+    pointer-events: none;
+}
+
+/* Zoom/Pan Cursor */
+#mrf-canvas {
+    cursor: grab;
+}
+
+#mrf-canvas:active {
+    cursor: grabbing;
+}
+
+/* Heatmap Input Styling */
+#sidebar-content input[type="number"] {
+    /* Override default input styles for heatmap cells */
+    padding: 4px;
+    border: none;
+    border-radius: 2px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.85rem;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+#sidebar-content input[type="number"]:hover {
+    outline: 2px solid #3498db;
+}
+
+#sidebar-content input[type="number"]:focus {
+    outline: 2px solid #e67e22;
+    background-color: #fff !important; /* White on focus for readability */
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-20px);
+    transition: transform 0.3s;
+}
+
+.modal-overlay:not(.hidden) .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #2c3e50;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #7f8c8d;
+    line-height: 1;
+}
+
+.btn-close:hover {
+    color: #e74c3c;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #34495e;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-group .hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* --- Layout Controls --- */
+.layout-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .modal-content {
+        width: 95%;
+    }
+}
+
+.graph-results-pane {
+    background: white;
+    border-top: 1px solid #ecf0f1;
+    max-height: 200px; /* Collapsible height */
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.graph-results-pane.collapsed {
+    max-height: 0;
+    overflow: hidden;
+    border-top: none;
+}
+
+.pane-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ecf0f1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.pane-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.btn-small:hover {
+    background: #eee;
+}
+
+#graph-results-container {
+    padding: 15px;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+/* Reuse existing result styles */
+.result-variable {
+    margin-bottom: 15px;
+}
+
+.result-variable h3 {
+    font-size: 1rem;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px;
+}
+
+.result-level {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.result-level .level-name {
+    width: 80px;
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
+.result-level .bar-container {
+    flex: 1;
+    height: 16px;
+    background-color: #ecf0f1;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0 8px;
+}
+
+.result-level .bar-fill {
+    height: 100%;
+    background-color: #3498db;
+    transition: width 0.3s ease;
+}
+
+.result-level .probability {
+    width: 50px;
+    text-align: right;
+    color: #7f8c8d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .graph-results-pane {
+        max-height: 150px;
+    }
+}
+
+#sidebar-content button[data-action="save-unary"],
+#sidebar-content button[data-action="save-binary"] {
+    background-color: #3498db !important; /* Solid Blue */
+    color: white !important;
+    border: 1px solid #2980b9 !important;
+    opacity: 1 !important; /* Force full opacity */
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+#sidebar-content button[data-action="save-unary"]:hover,
+#sidebar-content button[data-action="save-binary"]:hover {
+    background-color: #2980b9 !important;
+}
+
+/* Ensure input fields inside the sidebar don't affect buttons */
+#sidebar-content input[type="number"] {
+    /* Keep the heatmap logic for inputs only */
+    padding: 4px;
+    border: none;
+    border-radius: 2px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.85rem;
+    color: #333;
+    /* Ensure inputs don't inherit button styles */
+    background-color: transparent !important; 
+}
+
+#sidebar-content button[data-action="clear-evidence"],
+#sidebar-content button[data-action="remove-var"],
+#sidebar-content button[data-action="remove-unary"],
+#sidebar-content button[data-action="remove-binary"],
+#sidebar-content button[data-action="remove-evidence"],
+#sidebar-content .btn-danger,
+#sidebar-content .btn-close {
+    background-color: #e74c3c !important; /* Solid Red */
+    color: white !important;
+    border: 1px solid #c0392b !important;
+    opacity: 1 !important; /* Force full opacity */
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-left: 5px;
+}
+
+#sidebar-content button[data-action="clear-evidence"]:hover,
+#sidebar-content button[data-action="remove-var"]:hover,
+#sidebar-content button[data-action="remove-unary"]:hover,
+#sidebar-content button[data-action="remove-binary"]:hover,
+#sidebar-content button[data-action="remove-evidence"]:hover,
+#sidebar-content .btn-danger:hover,
+#sidebar-content .btn-close:hover {
+    background-color: #c0392b !important; /* Darker Red on Hover */
+}
+
+/* Ensure the close 'X' button in the modal is also red */
+.btn-close {
+    color: #e74c3c !important;
+    background: transparent !important;
+    border: none !important;
+    opacity: 1 !important;
+}
+
+.btn-close:hover {
+    color: #c0392b !important;
+}

@@ -10,87 +10,169 @@
     <div class="container">
         <header>
             <h1>mrf-browser</h1>
-            <p class="subtitle">
-                define <a href="https://en.wikipedia.org/wiki/Markov_random_field">markov random fields</a> and perform inference over them.
-            </p>
+            <p class="subtitle">build <a href="https://en.wikipedia.org/wiki/Markov_random_field">markov random fields</a> and perform statistical inference on them</p>
         </header>
 
-        <!-- Section 1: Variables -->
-        <section class="panel" id="variables-panel">
-            <h2>Variables</h2>
-            <div class="form-row">
-                <input type="text" id="var-name" placeholder="Variable name (e.g., Weather)">
-                <input type="text" id="var-levels" placeholder="Levels (comma-separated, e.g., sunny, rainy, cloudy)">
-                <button id="btn-add-var" class="btn btn-primary">+ Add Variable</button>
-            </div>
-            <div id="error-var" class="error-message"></div>
-            <ul id="var-list" class="item-list"></ul>
-        </section>
+        <!-- NEW: View Tabs -->
+        <div class="view-tabs">
+            <button id="tab-form" class="tab-btn active">table view</button>
+            <button id="tab-graph" class="tab-btn">graph view</button>
+        </div>
 
-        <!-- Section 2: Factors -->
-        <section class="panel" id="factors-panel">
-            <h2>Factors</h2>
-            <div class="form-row">
-                <select id="factor-type">
-                    <option value="unary">Univariate</option>
-                    <option value="binary">Bivariate</option>
-                </select>
-            </div>
-            
-            <!-- Univariate form -->
-            <div id="unary-form" class="factor-form">
+        <!-- EXISTING: Wrapped in Form View Container -->
+        <div id="form-view" class="view-container">
+            <!-- Section 1: Variables -->
+            <section class="panel" id="variables-panel">
+                <h2>variables</h2>
                 <div class="form-row">
-                    <select id="unary-var"></select>
-                    <input type="text" id="unary-entries" placeholder="Entries (e.g., rainy=5, sunny=2)">
-                    <button id="btn-add-unary" class="btn btn-primary">+ Add Factor</button>
+                    <input type="text" id="var-name" placeholder="Variable name (e.g., Weather)">
+                    <input type="text" id="var-levels" placeholder="Levels (comma-separated, e.g., sunny, rainy, cloudy)">
+                    <button id="btn-add-var" class="btn btn-primary">+ Add Variable</button>
+                </div>
+                <div id="error-var" class="error-message"></div>
+                <ul id="var-list" class="item-list"></ul>
+            </section>
+
+            <!-- Section 2: Factors -->
+            <section class="panel" id="factors-panel">
+                <h2>factors</h2>
+                <div class="form-row">
+                    <select id="factor-type">
+                        <option value="unary">univariate</option>
+                        <option value="binary">bivariate</option>
+                    </select>
+                </div>
+                
+                <!-- Univariate form -->
+                <div id="unary-form" class="factor-form">
+                    <div class="form-row">
+                        <select id="unary-var"></select>
+                        <input type="text" id="unary-entries" placeholder="Entries (e.g., rainy=5, sunny=2)">
+                        <button id="btn-add-unary" class="btn btn-primary">+ add factor</button>
+                    </div>
+                </div>
+
+                <!-- Bivariate form -->
+                <div id="binary-form" class="factor-form hidden">
+                    <div class="form-row">
+                        <select id="binary-var1"></select>
+                        <select id="binary-var2"></select>
+                        <input type="text" id="binary-entries" placeholder="Entries (e.g., rainy,sad=3, sunny,happy=4)">
+                        <button id="btn-add-binary" class="btn btn-primary">+ add factor</button>
+                    </div>
+                </div>
+
+                <div id="error-factor" class="error-message"></div>
+                <ul id="factor-list" class="item-list"></ul>
+            </section>
+
+            <!-- Section 3: Evidence -->
+            <section class="panel" id="evidence-panel">
+                <h2>evidence</h2>
+                <div class="form-row">
+                    <select id="evidence-var"></select>
+                    <select id="evidence-level"></select>
+                    <button id="btn-set-evidence" class="btn btn-primary">+ set evidence</button>
+                </div>
+                <div id="error-evidence" class="error-message"></div>
+                <ul id="evidence-list" class="item-list"></ul>
+            </section>
+
+            <!-- Section 4: Inference Controls -->
+            <section class="panel" id="controls-panel">
+                <h2>inference</h2>
+                <div class="form-row">
+                    <label>iterations:</label>
+                    <input type="number" id="iterations" value="20" min="1" max="1000" style="width: 80px;">
+                    <button id="btn-infer" class="btn btn-success">▶ run inference</button>
+                    <button id="btn-reset" class="btn btn-danger">reset all</button>
+                </div>
+                <div id="loading" class="hidden">loading WASM...</div>
+            </section>
+
+            <!-- Section 5: Results -->
+            <section class="panel" id="results-panel">
+                <h2>results</h2>
+                <div id="results-container"></div>
+            </section>
+        </div>
+
+        <!-- NEW: Graph View Container -->
+        <div id="graph-view" class="view-container hidden">
+            <div class="graph-layout">
+                <!-- Toolbar -->
+                <div class="graph-toolbar">
+                    <button id="btn-add-node" class="btn btn-primary">+ add node</button>
+                    <button id="btn-link-mode" class="btn btn-secondary">link mode: Off</button>
+                    <button id="btn-delete-selected" class="btn btn-danger">delete selected</button>
+                    <button id="btn-auto-layout" class="btn btn-secondary">auto layout</button>
+                    <div class="spacer"></div>
+                    <button id="btn-graph-infer" class="btn btn-success">run inference</button>
+                    <button id="btn-graph-reset" class="btn btn-danger">reset all</button>
+                </div>
+
+                <!-- Main Canvas Area -->
+                <div class="graph-canvas-wrapper">
+                    <svg id="mrf-canvas" width="100%" height="500" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
+                        <defs>
+                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <circle cx="1" cy="1" r="1" fill="#e0e0e0" />
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        <g id="edges-layer"></g>
+                        <g id="nodes-layer"></g>
+                    </svg>
+                    <div id="graph-loading" class="hidden">loading graph...</div>
+                </div>
+
+                <div class="graph-results-pane" id="graph-results-pane">
+                    <div class="pane-header">
+                        <h3>results</h3>
+                        <button id="btn-toggle-results" class="btn btn-small btn-secondary">hide</button>
+                    </div>
+                    <div id="graph-results-container">
+                        <p class="hint">run inference to see results here...</p>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="graph-sidebar" id="graph-sidebar">
+                    <h3>properties</h3>
+                    <div id="sidebar-content">
+                        <p class="hint">select a node or edge to edit properties.</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- Bivariate form -->
-            <div id="binary-form" class="factor-form hidden">
-                <div class="form-row">
-                    <select id="binary-var1"></select>
-                    <select id="binary-var2"></select>
-                    <input type="text" id="binary-entries" placeholder="Entries (e.g., rainy,sad=3, sunny,happy=4)">
-                    <button id="btn-add-binary" class="btn btn-primary">+ Add Factor</button>
-                </div>
-            </div>
-
-            <div id="error-factor" class="error-message"></div>
-            <ul id="factor-list" class="item-list"></ul>
-        </section>
-
-        <!-- Section 3: Evidence -->
-        <section class="panel" id="evidence-panel">
-            <h2>Evidence</h2>
-            <div class="form-row">
-                <select id="evidence-var"></select>
-                <select id="evidence-level"></select>
-                <button id="btn-set-evidence" class="btn btn-primary">+ Set Evidence</button>
-            </div>
-            <div id="error-evidence" class="error-message"></div>
-            <ul id="evidence-list" class="item-list"></ul>
-        </section>
-
-        <!-- Section 4: Inference Controls -->
-        <section class="panel" id="controls-panel">
-            <h2>Inference</h2>
-            <div class="form-row">
-                <label>Iterations:</label>
-                <input type="number" id="iterations" value="20" min="1" max="1000" style="width: 80px;">
-                <button id="btn-infer" class="btn btn-success">▶ Run Inference</button>
-                <button id="btn-reset" class="btn btn-danger">Reset All</button>
-            </div>
-            <div id="loading" class="hidden">Loading WASM...</div>
-        </section>
-
-        <!-- Section 5: Results -->
-        <section class="panel" id="results-panel">
-            <h2>Results</h2>
-            <div id="results-container"></div>
-        </section>
+        </div>
     </div>
 
+    <div id="add-node-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>add new variable</h3>
+                <button id="modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modal-var-name">variable name</label>
+                    <input type="text" id="modal-var-name" placeholder="e.g., Weather">
+                </div>
+                <div class="form-group">
+                    <label for="modal-var-levels">levels (comma-separated)</label>
+                    <input type="text" id="modal-var-levels" placeholder="e.g., sunny, rainy, cloudy">
+                    <small class="hint">enter level names separated by commas.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn btn-secondary">cancel</button>
+                <button id="modal-create" class="btn btn-primary">create node</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load WASM module first -->
+    <script src="./mrf.js"></script>
     <!-- Then load app logic -->
     <script type="module" src="./app.js"></script>
 </body>
