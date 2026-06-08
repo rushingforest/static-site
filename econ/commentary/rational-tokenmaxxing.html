@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | geoeconomics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/econ.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+     <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+      messageStyle: "none"
+    });
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="./index.html">up</a></li>
+              <li><a href="../index.html">geoeconomics</a></li>
+              <li><a href="../../prob/index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<div class="container-fluid" id="econ-home">
+    <h2>geoeconomics | commentary | rational tokenmaxxing (20260607)</h2>
+    <p>The reporting around “tokenmaxxing” – seemingly nonsensical and wasteful usage of token budgets for centrally hosted transformer-based model workflows – is <a href="https://www.nytimes.com/2026/03/20/technology/tokenmaxxing-ai-agents.html">comical</a>. When I’m in a bad mood or haven’t had enough coffee (same thing?) I think that tokenmaxxing is deranged behavior that is, at best, a really great demonstration of market-wide irrational exuberance. However, there are two cases in which tokenmaxxing is a rational behavior on the part of the maxxers (it’s a word now), and neither of them is a good sign for the health of the transformer-based AI economy.</p>
+    <p>In what follows I’ll write both “AI firms” and just “firms”. “AI firms” are companies that make money by selling centrally hosted transformer-based AI as a service. I might also call them “token factories” because I want to cosplay as a tech bro who has no concept of how hard it is to profitably manufacture a physical good. I’ll use “firms” are everyone who wants to make API calls to AI firms’ models.</p>
+    <h3 id="case-1-everyone-else-is-doing-it">Case 1: everyone else is doing it</h1>
+    <p>Everyone wants to look “AI forward”, right? Right. You gotta spend tokens to look “AI forward”. Okay, fine. How many tokens should we spend? It depends on how many tokens everyone else is spending. Whoops.</p>
+    <p>To be more formal about it, suppose that there are <span class="math inline"><em>N</em></span> firms “deploying AI” and spending tokens to get outputs from it. Each of the <span class="math inline"><em>n</em> = 1, ..., <em>N</em></span> firms spends <span class="math inline"><em>t</em><sub><em>n</em></sub></span> on tokens. Let <span class="math inline"><em>T</em><sub><em>n</em></sub> = ∑<sub><em>m</em> ≠ <em>n</em></sub><em>t</em><sub><em>m</em></sub></span>. The <span class="math inline"><em>n</em></span>-th firm should spend more than some threshold value <span class="math inline"><em>τ</em>(<em>T</em><sub><em>n</em></sub>)</span> to be seen as “AI-forward”, for which they expect to receive a reward <span class="math inline"><em>v</em></span>. If they don’t spend more than that, they expect they’ll receive nothing. The simplest sensible form of <span class="math inline"><em>τ</em></span> is <span class="math inline"><em>τ</em>(<em>T</em><sub><em>n</em></sub>) = <em>a</em> + <em>b</em><em>T</em><sub><em>n</em></sub></span>, where we can interpret <span class="math inline"><em>a</em> &gt; 0</span> as “table stakes” and <span class="math inline">0 &lt; <em>b</em> &lt; 1</span> as the complementarity of other firms’ spending (i.e., how much stronger their spending makes the requirement for firm <span class="math inline"><em>n</em></span> to raise its spending too). In this model, it’s clear that the best response function for firm <span class="math inline"><em>n</em></span> is to spend exactly <span class="math inline"><em>τ</em>(<em>T</em><sub><em>n</em></sub>)</span> on tokens whenever <span class="math inline"><em>τ</em>(<em>t</em><sub><em>n</em></sub>) &lt; <em>v</em></span> and exit the marketplace otherwise. The equilibrium condition is therefore <span class="math inline"><em>t</em><sup>*</sup> = <em>a</em> + <em>b</em>(<em>N</em> − 1)<em>t</em><sup>*</sup></span> (because <span class="math inline"><em>T</em><sub><em>n</em></sub> = ∑<sub><em>m</em> ≠ <em>n</em></sub><em>t</em><sub><em>m</em></sub> = ∑<sub><em>m</em> ≠ <em>n</em></sub><em>t</em><sup>*</sup> = (<em>N</em> − 1)<em>t</em><sup>*</sup></span>), which gives <br /><span class="math display">$$
+    t^* = \frac{a}{1 - b(N-1)} \tag{1}
+    $$</span><br /> as the equilibrium token spending amount. Not only does <span class="math inline"><em>t</em><sup>*</sup></span> increase with <span class="math inline"><em>N</em></span> – i.e., there’s a token-spending arms race – but there’s a finite-<span class="math inline"><em>N</em></span> blowup as <span class="math inline">$N\rightarrow \frac{1}{b}+1$</span> from the left. The economic interpretation of this limit is that, with enough firms entering the signalling game, <em>there is no rational upper bound of the number of tokens that a firm must spend to stay ahead</em>.</p>
+    <p>Case 1 is pretty classic market-bubble dynamics – it’s rational to keep playing the game even though the aggregate outcome is poor (or, said differently, there’s a first-mover disadvantaged for leaving the party). If an oracle told us that this were the true rational behind tokenmaxxing, we wouldn’t have learned too much new about the structure of the market but we’d at least be able to comfort ourselves that tech executives are, in a perverse way, behaving rationally.</p>
+    <h3 id="case-2-use-it-while-you-can">Case 2: use it while you can</h1>
+    <p>Case 2 is a (in my opinion) much more interesting possibility: <strong><em>tokenmaxxing reveals tech executives’ justified belief that centrally hosted transformer-based model workflows are fundamentally not financially sustainable</em>,</strong> even though they do create value for firms at current heavily subsidized price levels. The intuition is this: “because centrally hosted transformer-based model workflows aren’t financially sustainable and will eventually cease to exist, my company should get as much ‘work’ done using them as possible,” except every other company is also thinking that at the same time, which reduces the amount of time until those workflows cease to exist. Whoops.</p>
+    <p>This case is more complicated and the theoretical justification for it is, in my opinion, more dubious than that for Case 1. (I will discuss this more in the conclusion.) Still, let’s see what happens. There are <span class="math inline"><em>N</em></span> firms demanding tokens, which we denote as <span class="math inline"><em>x</em></span>, from the token factory sector (I.e., the aggregate of AI firms). Firm <span class="math inline"><em>n</em></span> has a revenue structure given by <span class="math inline"><em>r</em>(<em>x</em><sub><em>n</em></sub>)</span> and linear costs <span class="math inline"><em>c</em><em>x</em><sub><em>n</em></sub></span>. Their objective is to maximize their long-term expected profit, <span class="math inline">$\max_{x_n} E[\sum_{t=0}^T\delta^t r(x_{n,t}) - c x_{n,t})]$</span>, where <span class="math inline">0 ≤ <em>δ</em> ≤ 1</span> is firm <span class="math inline"><em>n</em></span>’s discount factor. The upper limit of the sum <span class="math inline"><em>T</em></span> is a random variable denoting the amount of time left until the AI firms / token factory sector goes bankrupt or otherwise ceases operating. (We know that <span class="math inline"><em>T</em> &lt; ∞</span> because <a href="https://www.wheresyoured.at/">AI firms are wildly unprofitable with no realistic chance of ever becoming profitable</a>.) We suppose that <span class="math inline"><em>T</em></span> is governed by a Markov assumption: the probability that the AI sector survives into the next period is given by a decreasing function of the total demand for its services (again, because increased demand for its services results in increasing negative cash flow). Mathematically, the probability of the AI sector surviving to the next period, <span class="math inline"><em>s</em> = <em>s</em>(<em>X</em>) = <em>s</em>(∑<sub><em>m</em></sub><em>x</em><sub><em>m</em></sub>)</span>, satisfies <span class="math inline"><em>s</em>(0) = 1</span> and <span class="math inline">lim<sub><em>X</em> → ∞</sub><em>s</em>(<em>X</em>) = 1</span>. The firm does what comes naturally and solves a Bellman equation for the optimal demand: <br /><span class="math display">$$
+    V_n = \max_{x_n}\{ r(x_n) - cx_n + \delta s(X) V_n\} \tag{2},
+    $$</span><br /> where again we set <span class="math inline"><em>X</em> = ∑<sub><em>m</em></sub><em>x</em><sub><em>m</em></sub></span>. The Nash equilibria of this game, if they exist, are found through simultaneous solution of all <span class="math inline"><em>N</em></span> Bellman equations and corresponding <span class="math inline"><em>N</em></span> best response functions, which is completely intractable and also wildly unrealistic. Something that’s still unrealistic but <em>less</em> so is to assume that firm <span class="math inline"><em>n</em></span> solves for a symmetric Markov perfect equilibrium (SMPE) of this game, reasoning that each other firm that’s “large enough to matter” in the bankrupting of the AI firms will have roughly the same reasoning and exhibit roughly the same revenue and cost dynamics as firm <span class="math inline"><em>n</em></span>. (Preparing for incoming hate mail from the assumption police.) The SMPE assumption means we have to solve only one Bellman equation:, <br /><span class="math display">$$
+    V = \max_{x}\{ r(x) - c x + \delta s(Nx)V\} \tag{3},
+    $$</span><br /> where we wrote <span class="math inline"><em>X</em> = ∑<sub><em>m</em></sub><em>x</em><sub><em>m</em></sub> = ∑<sub><em>m</em></sub><em>x</em> = <em>N</em><em>x</em></span> in the SMPE optimum. There are two derived quantities of interest: the first order conditions, <br /><span class="math display">$$
+    r'(x) - c + \delta s'(Nx)V = 0 \tag{4},
+    $$</span><br /> and the evaluated value function <em>at</em> the optimum: <br /><span class="math display">$$
+    V(x) = \frac{r(x) - cx}{1 - \delta s(Nx)}. \tag{5}
+    $$</span><br /> Substituting Eq. (5) into Eq. (4), the optima are the solutions of the nonlinear equation <br /><span class="math display">$$
+    MR \equiv r'(x) = c - \delta s'(Nx)\frac{r(x) - cx}{1 - \delta s(Nx)} \equiv MC. \tag{6}
+    $$</span><br /> In general this equation is impossible to solve analytically. We refer to the left-hand side as the marginal revenue (MR) and the right-hand side as the marginal cost (MC), which is a sum of the marginal private cost <span class="math inline"><em>c</em></span> and the shadow future cost of additional demand for tokens today. Numerical solution is easy and I’ll show some of those results below. The takeaway is this:</p>
+    <ul>
+    <li>There is nontrivial behavior resulting from the interaction of the firm’s marginal cost today <span class="math inline"><em>c</em></span> and the number of demanding firms <span class="math inline"><em>N</em></span>. There is probably a single bifurcation parameter that is a function of <span class="math inline"><em>c</em></span> and <span class="math inline"><em>N</em></span> but, with limited time spent, I haven’t been able to figure out what it is and it is not worth the time to figure it out for this analysis.</li>
+    <li>Generally, with “high” marginal cost today, there is a bifurcation as <span class="math inline"><em>N</em></span> grows. With low <span class="math inline"><em>N</em></span>, there is only one equilibrium, which is stable (the typical “marginal revenue equals marginal cost” equilibrium). We’ll call this first equilibrium <span class="math inline"><em>x</em><sup>(1)</sup></span>. As <span class="math inline"><em>N</em></span> increases, there is a bifurcation creating two new equilibrium – one unstable (<span class="math inline"><em>x</em><sup>(2)</sup></span>) and one stable (<span class="math inline"><em>x</em><sup>(3)</sup></span>) – with <span class="math inline"><em>x</em><sup>(3)</sup> &gt; <em>x</em><sup>(1)</sup></span>. One could argue that <span class="math inline"><em>x</em><sup>(3)</sup></span> is a tokenmaxxing equilibrium. <strong>In general, if Case 2 were the actual causal driver of tokenmaxxing, we’d say that the tokenmaxxing phenomenon is characterized by the convex bell-shape of some intermediate region of the <span class="math inline"><em>M</em><em>C</em></span> curve, which is turn is generated by the interplay of future value <span class="math inline"><em>V</em>(<em>x</em>)</span> and decreased survival <span class="math inline"><em>s</em>(<em>X</em>)</span> with increased demand <span class="math inline"><em>X</em></span>.</strong> Two interesting things to note here: (1) under this model, tokenmaxxing happens only once private marginal cost increases past a certain critical value; (2) in The Real World, the rise of tokenmaxxing as a phenomenon temporally correlates with the move by AI firms to token-based billing instead of flat-rate billing. Correlation, not causation, etc.</li>
+    <li>As <span class="math inline"><em>c</em></span> decreases, the <em>curvature</em> of MC changes and equilbria other than <span class="math inline"><em>x</em><sup>(1)</sup></span> no longer exist. In this intermediate range of <span class="math inline"><em>c</em></span>, there is a unique stable equilibrium which is essentially the “marginal revenue equals marginal private cost” value.</li>
+    <li>At very small values of <span class="math inline"><em>c</em></span>, the other two equilibria emerge again, and this time <span class="math inline"><em>x</em><sup>(3)</sup></span> is <em>much</em> larger than <span class="math inline"><em>x</em><sup>(1)</sup></span>. At first blush it would appear that this is a stronger tokenmaxxing phenomenon but this isn’t actually the case – note that this case arises as <span class="math inline"><em>M</em><em>C</em> → <em>c</em></span> as <span class="math inline"><em>x</em></span> becomes large, and <span class="math inline"><em>c</em></span> is just really <em>low</em>. Except…well, if the marginal cost is <em>artificially</em> very low, then…</li>
+    </ul>
+    <p><span class="math inline"><em>c</em> = 0.5</span>, <span class="math inline"><em>d</em> = 0.99</span> <img src="tokenmaxxing-revenue-costs-c0.5-d0.99.png" /></p>
+    <p><span class="math inline"><em>c</em> = 0.415</span>, <span class="math inline"><em>d</em> = 0.99</span> <img src="tokenmaxxing-revenue-costs-c0.415-d0.99.png" /></p>
+    <p><span class="math inline"><em>c</em> = 0.3</span>, <span class="math inline"><em>d</em> = 0.99</span> <img src="tokenmaxxing-revenue-costs-c0.3-d0.99.png" /></p>
+    <p><span class="math inline"><em>c</em> = 0.05</span>, <span class="math inline"><em>d</em> = 0.99</span> <img src="tokenmaxxing-revenue-costs-c0.05-d0.99.png" /> </p>
+    <p>(Note the change in horizontal axis scale in the fourth figure; the third equilibrium is much, much larger than in the other scenarios with three equilibria. This is caused, however, essentially by the very low marginal private cost, not by the tokenmaxxing phenomenon.)</p>
+    <p>In these numerical solutions, I used a typical sigmoid function as the survival probability – <span class="math inline">$s(Nx) = 1-(\frac{1}{\pi} \arctan(N(x-M))+ \frac{1}{2})$</span> and assumed logarithmic revenue, <span class="math inline"><em>r</em>(<em>x</em>) = log (1 + <em>x</em>)</span>. The change in curvature is due to the interaction between the gradient of the survival probability – which is a bell-shaped function if the survival probability has a sigmoid shape – and the marginal cost. I caution the reader that I haven’t done a thorough analysis of Eq. 6 and it’s very likely that the properties of the solutions I described change, perhaps even qualitatively, depending on choices of <span class="math inline"><em>r</em>(<em>x</em>)</span> and <span class="math inline"><em>s</em>(<em>x</em>)</span>. (For example, try seeing what happens if you assume linear revenue, <span class="math inline"><em>r</em>(<em>x</em>) = <em>a</em><em>x</em></span>…)</p>
+    <h3 id="conclusion">Conclusion</h1>
+    <p>Is Case 2 plausible? Maybe. I had to make many assumptions and, more fundamentally, there was much more <em>complication</em> in the analysis and in the result. In general we seek to minimize the complication of an explanation of a phenomenon. In contrast with Case 2, Case 1 is simple – simple analysis, simple results – and comports fairly well with reality (or at least, a narrative description of reality). But, either way, in short – yes, there are possible rational explanations for tokenmaxxing, and no, neither of them are a good sign of the health of AI firms or the industry writ large.</p>
+</div>
+  <footer class="financial-disclaimer-footer">
+            <p class="disclaimer-title">Financial disclosure and disclaimer</p>
+            <small class="disclaimer-text">
+                The information provided in this article is for informational purposes only and is not intended to constitute financial, investment, legal, tax,
+                or other professional advice.
+                The content is prepared without consideration of individual circumstances, financial objectives, or risk tolerances,
+                and readers should not regard the information as a recommendation to buy, sell, or hold any specific securities, investments, or financial products.
+                Readers of this article are solely responsible for their own independent analysis, due diligence, and investment decisions.
+                We strongly advise consulting qualified financial professionals or other advisors before making investment decisions or acting on any
+                information provided in our materials.
+                The information and opinions provided are based on sources believed to be reliable and accurate at the time of publication.
+                However, David Rushing Dewhurst does not make any representation or warranty, express or implied, as to the accuracy, completeness, or timeliness of the information.
+                Markets, financial instruments, and macroeconomic conditions are inherently unpredictable, and past performance is not indicative of future results.
+                David Rushing Dewhurst does not accept liability for any losses, damages, or consequences arising from the use of its content or reliance on the information
+                contained herein.
+                Readers acknowledge that investment decisions carry inherent risks, including the risk of capital loss.
+                This disclaimer applies globally and shall be enforceable in jurisdictions where David Rushing Dewhurst operates.
+                Readers in all jurisdictions are responsible for ensuring compliance with local laws, rules, and regulations.
+                By accessing or using the information provided by David Rushing Dewhurst, users agree to the terms of this disclaimer.
+            </small>
+        </footer>
+
+</body>
+</html>
