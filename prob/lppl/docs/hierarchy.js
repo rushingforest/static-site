@@ -6,8 +6,10 @@ var hierarchy =
     [ "arity< Categorical >", "structarity_3_01Categorical_01_4.html", null ],
     [ "arity< Discrete< T > >", "structarity_3_01Discrete_3_01T_01_4_01_4.html", null ],
     [ "arity< DiscreteUniform >", "structarity_3_01DiscreteUniform_01_4.html", null ],
+    [ "arity< DynamicGame >", "structarity_3_01DynamicGame_01_4.html", null ],
     [ "arity< Gamma >", "structarity_3_01Gamma_01_4.html", null ],
     [ "arity< Normal >", "structarity_3_01Normal_01_4.html", null ],
+    [ "arity< NormalFormGame >", "structarity_3_01NormalFormGame_01_4.html", null ],
     [ "arity< Parameter< V > >", "structarity_3_01Parameter_3_01V_01_4_01_4.html", null ],
     [ "arity< Poisson >", "structarity_3_01Poisson_01_4.html", null ],
     [ "arity< Triangular >", "structarity_3_01Triangular_01_4.html", null ],
@@ -41,11 +43,17 @@ var hierarchy =
     [ "Distribution< DiscreteUniform, int >", "structDistribution.html", [
       [ "DiscreteUniform", "structDiscreteUniform.html", null ]
     ] ],
+    [ "Distribution< DynamicGame, dynamic_play_t >", "structDistribution.html", [
+      [ "DynamicGame", "structDynamicGame.html", null ]
+    ] ],
     [ "Distribution< Gamma, double >", "structDistribution.html", [
       [ "Gamma", "structGamma.html", null ]
     ] ],
     [ "Distribution< Normal, double >", "structDistribution.html", [
       [ "Normal", "structNormal.html", null ]
+    ] ],
+    [ "Distribution< NormalFormGame, nfg_profile_t >", "structDistribution.html", [
+      [ "NormalFormGame", "structNormalFormGame.html", null ]
     ] ],
     [ "Distribution< Parameter< V >, V::type >", "structDistribution.html", [
       [ "Parameter< V >", "structParameter.html", null ]
@@ -107,8 +115,10 @@ var hierarchy =
     [ "input_types< Categorical >", "structinput__types_3_01Categorical_01_4.html", null ],
     [ "input_types< Discrete< T > >", "structinput__types_3_01Discrete_3_01T_01_4_01_4.html", null ],
     [ "input_types< DiscreteUniform >", "structinput__types_3_01DiscreteUniform_01_4.html", null ],
+    [ "input_types< DynamicGame >", "structinput__types_3_01DynamicGame_01_4.html", null ],
     [ "input_types< Gamma >", "structinput__types_3_01Gamma_01_4.html", null ],
     [ "input_types< Normal >", "structinput__types_3_01Normal_01_4.html", null ],
+    [ "input_types< NormalFormGame >", "structinput__types_3_01NormalFormGame_01_4.html", null ],
     [ "input_types< Parameter< V > >", "structinput__types_3_01Parameter_3_01V_01_4_01_4.html", null ],
     [ "input_types< Poisson >", "structinput__types_3_01Poisson_01_4.html", null ],
     [ "input_types< Triangular >", "structinput__types_3_01Triangular_01_4.html", null ],
@@ -121,6 +131,7 @@ var hierarchy =
     [ "mapping< unbounded< double >, unit_interval< double > >", "structmapping_3_01unbounded_3_01double_01_4_00_01unit__interval_3_01double_01_4_01_4.html", null ],
     [ "mapping< unbounded< T >, non_negative< T > >", "structmapping_3_01unbounded_3_01T_01_4_00_01non__negative_3_01T_01_4_01_4.html", null ],
     [ "No", "structNo.html", null ],
+    [ "Node", "structNode.html", null ],
     [ "node_spec", "structnode__spec.html", null ],
     [ "node_t< D >", "structnode__t.html", null ],
     [ "NodeBlock", "structNodeBlock.html", null ],
@@ -139,8 +150,10 @@ var hierarchy =
     [ "output_domain< BVNormal >", "structoutput__domain_3_01BVNormal_01_4.html", null ],
     [ "output_domain< Categorical >", "structoutput__domain_3_01Categorical_01_4.html", null ],
     [ "output_domain< Discrete< T > >", "structoutput__domain_3_01Discrete_3_01T_01_4_01_4.html", null ],
+    [ "output_domain< DynamicGame >", "structoutput__domain_3_01DynamicGame_01_4.html", null ],
     [ "output_domain< Gamma >", "structoutput__domain_3_01Gamma_01_4.html", null ],
     [ "output_domain< Normal >", "structoutput__domain_3_01Normal_01_4.html", null ],
+    [ "output_domain< NormalFormGame >", "structoutput__domain_3_01NormalFormGame_01_4.html", null ],
     [ "output_domain< Parameter< V > >", "structoutput__domain_3_01Parameter_3_01V_01_4_01_4.html", null ],
     [ "output_domain< Poisson >", "structoutput__domain_3_01Poisson_01_4.html", null ],
     [ "output_domain< Triangular >", "structoutput__domain_3_01Triangular_01_4.html", null ],

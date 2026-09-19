@@ -53,5 +53,6 @@ var record_8hpp =
     [ "sample", "record_8hpp.html#ab7e0ce12b75997bbf70abf7ce8b1302f", null ],
     [ "sample", "record_8hpp_a2ae32ceac91100ce3dd882bc5ccf82f3.html#a2ae32ceac91100ce3dd882bc5ccf82f3", null ],
     [ "sample", "record_8hpp_a76a476bf6b84416d6d106c3b290f5848.html#a76a476bf6b84416d6d106c3b290f5848", null ],
-    [ "sample", "record_8hpp_a67a2e359ea25bfba4834689031533a35.html#a67a2e359ea25bfba4834689031533a35", null ]
+    [ "sample", "record_8hpp_a67a2e359ea25bfba4834689031533a35.html#a67a2e359ea25bfba4834689031533a35", null ],
+    [ "track", "record_8hpp.html#a39a41dbeebf0888560668dc0dce74d27", null ]
 ];

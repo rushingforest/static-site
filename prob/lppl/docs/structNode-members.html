@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>lppl: Member List</title>
+<title>fmcs: Member List</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -32,8 +32,8 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">lppl
-   &#160;<span id="projectnumber">v2.0.0</span>
+   <div id="projectname">fmcs
+   &#160;<span id="projectnumber">v3.0.0</span>
    </div>
   </td>
  </tr>
@@ -70,7 +70,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('structtransition.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('structNode.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -90,15 +90,20 @@ $(document).ready(function(){initNavTree('structtransition.html',''); initResiza
 
 <div class="header">
   <div class="headertitle">
-<div class="title">transition&lt; Impl, O, Out &gt; Member List</div>  </div>
+<div class="title">Node Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a>, including all inherited members.</p>
+<p>This is the complete list of members for <a class="el" href="structNode.html">Node</a>, including all inherited members.</p>
 <table class="directory">
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>generate</b>() (defined in <a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a>)</td><td class="entry"><a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>operator()</b>() (defined in <a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a>)</td><td class="entry"><a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>update</b>(FilterValueType&lt; O, Out... &gt; &amp;r) (defined in <a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a>)</td><td class="entry"><a class="el" href="structtransition.html">transition&lt; Impl, O, Out &gt;</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>actions</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>children</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>decision</b>(int player, std::vector&lt; std::string &gt; acts, std::vector&lt; std::shared_ptr&lt; Node &gt;&gt; kids) (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">static</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>eq_choice</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>payoffs</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>player</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>terminal</b> (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>terminal_node</b>(std::vector&lt; double &gt; p) (defined in <a class="el" href="structNode.html">Node</a>)</td><td class="entry"><a class="el" href="structNode.html">Node</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">static</span></td></tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

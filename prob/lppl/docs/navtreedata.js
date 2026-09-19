@@ -26,9 +26,10 @@ var NAVTREE =
 [
   [ "fmcs", "index.html", [
     [ "<tt>fmcs</tt>", "md_README.html", [
-      [ "Build", "md_README.html#autotoc_md1", null ],
-      [ "Test", "md_README.html#autotoc_md2", null ],
-      [ "License etc.", "md_README.html#autotoc_md3", null ]
+      [ "Requirements", "md_README.html#autotoc_md1", null ],
+      [ "Build", "md_README.html#autotoc_md2", null ],
+      [ "Test", "md_README.html#autotoc_md3", null ],
+      [ "License etc.", "md_README.html#autotoc_md4", null ]
     ] ],
     [ "Todo List", "todo.html", null ],
     [ "Classes", "annotated.html", [
@@ -38,6 +39,7 @@ var NAVTREE =
       [ "Class Members", "functions.html", [
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
+        [ "Variables", "functions_vars.html", null ],
         [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],
@@ -56,9 +58,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"structEndog.html",
-"structgr__output.html",
-"structvalue__collection__t.html#a8eea8c57b93fc2beba7ef61c6743289c"
+"structDiscreteUniform.html#a10b82a90f6a6099d1dad00807289a1ad",
+"structWeighted_a4af5132546021745ab23b7fd7bd2642a.html#a4af5132546021745ab23b7fd7bd2642a",
+"structrecord__collection__t.html#a56b57055edfe94118ccdd707ea9a8e74"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

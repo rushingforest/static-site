@@ -33,7 +33,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">fmcs
-   &#160;<span id="projectnumber">v0.2.1</span>
+   &#160;<span id="projectnumber">v3.0.0</span>
    </div>
   </td>
  </tr>
@@ -93,16 +93,19 @@ $(document).ready(function(){initNavTree('md_README.html',''); initResizable(); 
 <div class="title"><code>fmcs</code> </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><code>fmcs</code> is a low-resource universal probabilistic programming framework.</p>
+<div class="textblock"><p><code>fmcs</code> &ndash; the fast monte carlo system &ndash; is a low-resource universal probabilistic programming framework.</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
+Requirements</h1>
+<p>Requires <code>zip.hpp</code> from <a href="https://github.com/ryanhaining/cppitertools"><code>cppitertools</code></a> to be in the <code>include</code> directory.</p>
+<h1><a class="anchor" id="autotoc_md2"></a>
 Build</h1>
 <p><code>./setup.sh &amp;&amp; cd build &amp;&amp; cmake .. &amp;&amp; make</code>. Requires (a) a compiler that supports C++ 20 and (b) CMake v3.20.0 or later.</p>
-<p><b>Please note</b> that <code>fmcs</code> has been tested on Apple clang v12.0.0 on OSX, Mingw-w64 on Windows 10, and g++ 11.3.0 on ubuntu. It <em>should</em> compile under any standards compliant C++20 compiler, but that is not guaranteed. Please submit build errors here: <a href="https://gitlab.com/drdewhurst/fmcs/-/issues">https://gitlab.com/drdewhurst/fmcs/-/issues</a>. <br  />
+<p><b>Please note</b> that <code>fmcs</code> has been tested on Apple clang v12.0.0 on OSX, Mingw-w64 on Windows 10, g++ 11.3.0 on pop!_os, and emscripten 4.0.7 on pop!_os. It <em>should</em> compile under any standards compliant C++20 compiler, but that is not guaranteed. Please submit build errors here: <a href="https://gitlab.com/drdewhurst/fmcs/-/issues">https://gitlab.com/drdewhurst/fmcs/-/issues</a>. <br  />
 </p>
-<h1><a class="anchor" id="autotoc_md2"></a>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Test</h1>
 <p>Run any of the tests that show up in the <code>build</code> directory after you build. E.g., <code>./record_test</code>. <b>Please note</b> that deterministic results are guaranteed under specific hardware configurations, but not across operating systems.</p>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<h1><a class="anchor" id="autotoc_md4"></a>
 License etc.</h1>
 <p><code>fmcs</code> is free software released under the terms of the GNU General Public License (GPL) v3. Copyright DXDelta, LLC and David Rushing Dewhurst, 2022 - present. </p>
 </div></div><!-- contents -->

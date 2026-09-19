@@ -47,6 +47,7 @@ var distributions_8hpp =
     [ "Uniform", "structUniform.html", "structUniform" ],
     [ "WienerProcess", "structWienerProcess.html", "structWienerProcess" ],
     [ "_USE_MATH_DEFINES", "distributions_8hpp.html#a525335710b53cb064ca56b936120431e", null ],
+    [ "Delta", "distributions_8hpp.html#aa544a47426dd79575f33356a98458822", null ],
     [ "chol_inv", "distributions_8hpp.html#ae43d57401e6901836a26d33d7d8dd993", null ],
     [ "qf", "distributions_8hpp.html#a3a126e26f97d81ec749461118f1fa248", null ]
 ];

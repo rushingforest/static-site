@@ -33,7 +33,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">fmcs
-   &#160;<span id="projectnumber">v0.2.1</span>
+   &#160;<span id="projectnumber">v3.0.0</span>
    </div>
   </td>
  </tr>
@@ -306,6 +306,11 @@ template&lt;typename D , typename RNG &gt; </td></tr>
 <tr class="memitem:a67a2e359ea25bfba4834689031533a35"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="distribution__traits_8hpp_a1c62a84e1d4e6502ab1f181f0fb5bd8e.html#a1c62a84e1d4e6502ab1f181f0fb5bd8e">DSType</a>&lt; D &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="record_8hpp_a67a2e359ea25bfba4834689031533a35.html#a67a2e359ea25bfba4834689031533a35">sample</a> (<a class="el" href="structrecord__t.html">record_t</a>&lt; DTypes&lt; Ts... &gt;&gt; &amp;r, std::string address, D <a class="el" href="particle_8hpp_af4f7c688dd15dc34688064b92ce23a8c.html#af4f7c688dd15dc34688064b92ce23a8c">dist</a>, RNG &amp;rng, std::optional&lt; <a class="el" href="distribution__traits_8hpp_a1c62a84e1d4e6502ab1f181f0fb5bd8e.html#a1c62a84e1d4e6502ab1f181f0fb5bd8e">DSType</a>&lt; D &gt;&gt; maybe_value)</td></tr>
 <tr class="memdesc:a67a2e359ea25bfba4834689031533a35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Either samples a value from the specified distribution or observes a value against it, depending on whether data or null is passed as <code>maybe_value</code>.  <a href="record_8hpp_a67a2e359ea25bfba4834689031533a35.html#a67a2e359ea25bfba4834689031533a35">More...</a><br /></td></tr>
 <tr class="separator:a67a2e359ea25bfba4834689031533a35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39a41dbeebf0888560668dc0dce74d27"><td class="memTemplParams" colspan="2"><a id="a39a41dbeebf0888560668dc0dce74d27"></a>
+template&lt;typename V , typename... Ts&gt; </td></tr>
+<tr class="memitem:a39a41dbeebf0888560668dc0dce74d27"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="distribution__traits_8hpp_a1c62a84e1d4e6502ab1f181f0fb5bd8e.html#a1c62a84e1d4e6502ab1f181f0fb5bd8e">DSType</a>&lt; <a class="el" href="structParameter.html">Parameter</a>&lt; V &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="record_8hpp.html#a39a41dbeebf0888560668dc0dce74d27">track</a> (<a class="el" href="structrecord__t.html">record_t</a>&lt; DTypes&lt; Ts... &gt;&gt; &amp;r, std::string address, <a class="el" href="structParameter.html">Parameter</a>&lt; V &gt; <a class="el" href="particle_8hpp_af4f7c688dd15dc34688064b92ce23a8c.html#af4f7c688dd15dc34688064b92ce23a8c">dist</a>)</td></tr>
+<tr class="memdesc:a39a41dbeebf0888560668dc0dce74d27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tracks the value from the parameter or delta distribution into the record. <br /></td></tr>
+<tr class="separator:a39a41dbeebf0888560668dc0dce74d27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>This file is part of fmcs. Copyright David Rushing Dewhurst, 2022 - present. Some rights reserved. </p>

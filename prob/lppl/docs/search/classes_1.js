@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['beta_301',['Beta',['../structBeta.html',1,'']]],
-  ['bvnormal_302',['BVNormal',['../structBVNormal.html',1,'']]]
+  ['beta_329',['Beta',['../structBeta.html',1,'']]],
+  ['bvnormal_330',['BVNormal',['../structBVNormal.html',1,'']]]
 ];

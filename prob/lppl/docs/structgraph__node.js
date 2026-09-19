@@ -1,5 +1,8 @@
 var structgraph__node =
 [
+    [ "get_address", "structgraph__node.html#a8584cd9233fc93ed4cffa01eb5fd384d", null ],
+    [ "get_children", "structgraph__node.html#a68e2d5910f0058d6fae83d42f9077498", null ],
+    [ "get_parents", "structgraph__node.html#a837b7e46083b1065e82b76128162aa67", null ],
     [ "logprob", "structgraph__node_a27826ef580c89854996e909a8b29ded1.html#a27826ef580c89854996e909a8b29ded1", null ],
     [ "sample", "structgraph__node_aa0e6993f31de43af572a75d5f4bf0d34.html#aa0e6993f31de43af572a75d5f4bf0d34", null ],
     [ "string", "structgraph__node.html#a065339539eea046dd698e7e10b5f5d93", null ],

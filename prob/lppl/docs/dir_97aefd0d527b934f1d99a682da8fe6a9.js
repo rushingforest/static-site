@@ -20,6 +20,7 @@ var dir_97aefd0d527b934f1d99a682da8fe6a9 =
       [ "unit_interval< double >", "structunit__interval_3_01double_01_4.html", "structunit__interval_3_01double_01_4" ]
     ] ],
     [ "effects.hpp", "effects_8hpp.html", "effects_8hpp" ],
+    [ "game_distributions.hpp", "game__distributions_8hpp.html", "game__distributions_8hpp" ],
     [ "graph.hpp", "graph_8hpp.html", "graph_8hpp" ],
     [ "graph_query.hpp", "graph__query_8hpp.html", "graph__query_8hpp" ],
     [ "plate.hpp", "plate_8hpp.html", [
