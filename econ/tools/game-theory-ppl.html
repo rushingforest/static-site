@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>drd | geoeconomics</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/econ.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.js"></script>
+     <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      jax: ["input/TeX", "output/HTML-CSS"],
+      extensions: ["tex2jax.js"],
+      "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+      tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+      TeX: { noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+      messageStyle: "none"
+    });
+    </script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">david rushing dewhurst</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="./index.html">up</a></li>
+              <li><a href="../index.html">geoeconomics</a></li>
+              <li><a href="../../prob/index.html">probabilistic modeling</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+<div class="container-fluid" id="econ-home">
+    <h2>geoeconomics | commentary | non-cooperative game theory inside record-based probabilistic programs made "easy"; or, how the world kind of really works, sort of (20260919)</h2>
+      <p>Because I am grouchy and legitimately sick of theoretically knowledgeable and competent people calling inverse game theory a “new AI paradigm” and similarly inane nonsense, I decided to implement fundamental game structures and solvers inside of a probabilistic programming language in only a few hundred lines of C++. (“New paradigm!!!11!!1!”) Because this implementation lets you define and solve games inside of a generative probabilistic program, inverse game theory is now Real Easy; you just post an observed game outcome as evidence and hit the big red infer button. Because the probabilistic programming language is <code>fmcs</code>, inference is very fast and is very considerate of your computational resources. Because it is written in header-only, standard-library-only C++, you can use it anywhere.</p>
+      <h1 id="why-do-you-care">Why do you care?</h1>
+      <p>Ugh. Lots of reasons, so skip to the next section if you hate words. In economics we often model strategic situations using game theory – we define a solution concept (many of which are quite elegant and do a pretty good job describing real decision scenarios), define a game (ideally with payoffs that are somehow connected with the real world – more on that momentarily), solve the game, and contemplate the equilibria. This is all well and good, and indeed I think (editorial! lack of evidence presented here! I’m not writing a scientific paper and it feels SO GOOD!) that this does a better job of describing the world than many non-economists will claim, but it’s still not perfect. In particular, one beautiful and intricate failure mode is the hierarchical and sequential nature of strategic (= game-theoretic) analysis. We will define a game, e.g., between Red and Blue (making things easy by dichotomizing!), and then we will solve it, <em>and then we will actually take an action based on the solution</em>, which is not the same as seeing what the optimal solution is. Suppose we are Blue and perform the actions just described; meanwhile, Red has set up a similar game, or maybe even the same one if we are very lucky and good at our jobs (order of words intentional), and then Red will solve it, and then Red will take an action too, <em>and then we will observe each others’ actions</em> and set up more games and solve them, etc. In all but the most extreme scenarios, which thankfully have never been observed in the post-1945 world, there is no such thing as a purely simultaneous game, but almost never do we actually contemplate the hierarchical sequential nature of things, let alone write it down and attempt to reason about it…</p>
+      <p>I have endless anecdotes about the above, some of which are suitable for public consumption.</p>
+      <p>Well, what I implemented is certainly not the first tilt at the windmills I just described – systematically, that might have been done with mutually recursive (in the infinite recursion limit reaches strategic reasoning) probabilistic programs implemented as test cases in <a href="https://github.com/probprog/anglican">Anglican</a> and <a href="https://web.stanford.edu/~ngoodman/papers/churchUAI08_rev2.pdf">Church</a> (thanks, <a href="https://en.wikipedia.org/wiki/Kathleen_Fisher">Kathleen!</a>), and from discussions with Avi Pfeffer (now roughly five years ago…) I infer that he was thinking about similar things in the 1990s – but it is probably the simplest (just define a game and sample from a distribution) and almost certainly the lowest-resource way to do so. In a real sense, considering generative probabilistic programs in the tradition of <code>pymc3</code>, <code>pyro</code>, and (ahem) <code>fmcs</code>, this is kind of as close as we come to reality while still <em>in silico</em>: the probabilistic program is an encoding of a data generating process (= how the data we observe actually comes to be, not just what it is); and so, one can define scatter-gather patterns of multiple players solving similar, but not identical, versions of the same game and then create a probabilistic model of their interactions post-game solution; one can define an open-universe program over nested games (modeling the “rabbit-holes” down which one often tentatively treads or plunges headlong); one can define complicated or complex probabilistic programs that return payoff values of a dynamic game; etc. As far as I know there is no other easy way to do any of these things today, and there is almost certainly no single platform that gives you a way to do all of them.</p>
+      <h1 id="what-is-it">What Is It?</h1>
+      <p>Brief primer (really, truly brief, since if you’ve made it this far you almost certainly have more than passing familiarity with at least one of game theory and probabilistic programming, and have more than a vague inkling of what the complementary set is). I defined very simple game structures and equilibrium concepts, defined as-simple-as-possible solvers for solving those games for those equilibrium concepts, and then wrapped those games in the <code>fmcs</code> machinery required to create a “probability distribution” (you’ll see why the quotes) out of those games. The <code>fmcs</code> machinery that already exists takes care of the rest – conditioning on observed gameplay if desired, performing statistical inference, and querying a posterior for values that are related to gameplay.</p>
+      <p>You can do a few things. You can define a noncooperative game in two ways: simultaneous and dynamic. To define a <a href="https://daviddewhurst.xyz/prob/lppl/docs/structNormalFormGame.html">simultaneous game</a> (two players only, sorry!) you might write, e.g., <code>C++   std::vector&lt;std::vector&lt;double&gt;&gt; mp_row = { {1.0, -1.0}, {-1.0, 1.0} };   std::vector&lt;std::vector&lt;double&gt;&gt; mp_col = { {-1.0, 1.0}, {1.0, -1.0} };   auto g = NormalFormGame(mp_row, mp_col, 2.0);</code> to define the matching pennies game with <span class="math inline"><em>λ</em> = 2.0</span> in a subsequent quantal response equilibrium (cry more) solution. You can also define a <a href="https://daviddewhurst.xyz/prob/lppl/docs/structDynamicGame.html">dynamic game</a> with <span class="math inline"><em>N</em> ≥ 2</span> players, with perfect information, and with “no limit” on number of moves per player or overall. You might define, e.g., a two-player dynamic coordination game as follows:</p>
+      <div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">auto</span> left = Node::decision(<span class="dv">1</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>},</span>
+      <span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>    {Node::terminal_node({<span class="dv">2</span>, <span class="dv">2</span>}), Node::terminal_node({<span class="dv">0</span>, <span class="dv">0</span>})});</span>
+      <span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="kw">auto</span> right = Node::decision(<span class="dv">1</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>},</span>
+      <span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    {Node::terminal_node({<span class="dv">0</span>, <span class="dv">0</span>}), Node::terminal_node({<span class="dv">2</span>, <span class="dv">2</span>})});</span>
+      <span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="kw">auto</span> tree = Node::decision(<span class="dv">0</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>}, {left, right});</span></code></pre></div>
+      <p>Here, <code>tree</code> is the game tree that will be eventually solved and the numeric values in <code>Node::terminal_node</code> are the payoffs.</p>
+      <p>You can solve a noncooperative game. Simultaneous games are solved per the quantal response equilibrium concept. The equilibrium state depends on a real-valued free parameter <span class="math inline"><em>λ</em> ≥ 0</span> which governs the level of “rationality” of the game (<span class="math inline"><em>λ</em> → 0</span> connotes random chance; <span class="math inline"><em>λ</em> → ∞</span> connotes “rationality”). You solve simultaneous games by initializing them, which calls a <code>.solve()</code> method. <code>solve</code> uses a fixed point iteration algorithm that is not guaranteed to converge but, in my biased testing, does converge much of the time. Dynamic games are solved for Nash equilibria in pure strategies for philosophical reasons into which I will not get currently, but will eventually, and will link back here when I do get to them. You solve dynamic games by calling a <code>solve</code> method or, for more information, calling <code>eq_path</code>, e.g., <code>eq_path(tree)</code>. This uses the backward induction algorithm and returns <em>only the single Nash equilibrium found by that algorithm</em>, again on purpose, and again for philosophical reasons that I will explain sometime.</p>
+      <p>So far, yawn. Stay awake – you can sample from games. (That’s better.) For a simultaneous game, you do a typical <code>fmcs</code> sample statement:</p>
+      <div class="sourceCode" id="cb2"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">auto</span> game = NormalFormGame(u, u, <span class="fl">4.0</span>);</span>
+      <span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a>sample(r, <span class="st">&quot;play&quot;</span>, game, rng, observed_play);</span></code></pre></div>
+      <p>to sample a value from the <code>NormalFormGame</code> with identical row and column player payoffs <code>u</code> and <span class="math inline"><em>λ</em> = 4.0</span> into a <a href="https://daviddewhurst.xyz/prob/lppl/docs/structrecord__t_3_01DTypes_3_01Ts_8_8_8_01_4_01_4.html">record</a> <code>r</code> whose <a href="https://daviddewhurst.xyz/prob/lppl/docs/record_8hpp.html"><code>DTypes</code></a> contain at least the distribution type <code>NormalFormGame</code>. What does this mean? It means that, on initialization, the normal form game that’s defined by row and column player payoffs is solved using the fixed point iteration method, and then when the higher-level <code>fmcs</code> logic gets to the actual sampling action, a strategy pair is sampled according to the probability distribution that is generated by the fixed point iteration method. For a dynamic game, you do something similar, e.g.,</p>
+      <div class="sourceCode" id="cb3"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">auto</span> left = Node::decision(<span class="dv">1</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>},</span>
+      <span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>    {Node::terminal_node({<span class="dv">2</span>, <span class="dv">2</span>}), Node::terminal_node({<span class="dv">0</span>, <span class="dv">0</span>})});</span>
+      <span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="kw">auto</span> right = Node::decision(<span class="dv">1</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>},</span>
+      <span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    {Node::terminal_node({<span class="dv">0</span>, <span class="dv">0</span>}), Node::terminal_node({<span class="dv">2</span>, <span class="dv">2</span>})});</span>
+      <span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="kw">auto</span> tree = Node::decision(<span class="dv">0</span>, {<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>}, {left, right});</span>
+      <span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>sample(r, <span class="st">&quot;decision&quot;</span>, DynamicGame(tree), rng);</span></code></pre></div>
+      <p>to sample a value from the <code>DynamicGame</code> into a record <code>r</code> whose <code>DTypes</code> contain at least the distribution type <code>DynamicGame</code>. This really is very boring because it just returns the single Nash equilibrium found by the backward induction algorithm.</p>
+      <p>You can observe values against games. For the simultaneous game that’s sort of easy, because, for any value of <span class="math inline"><em>λ</em> ∈ (0, ∞)</span> every strategy is played with positive probability, it’s just a lookup and return of the corresponding log-probability. For dynamic games with the solution concept I’ve settled on that doesn’t make sense – there’s only one “right answer” – but that also doesn’t correspond with our notion of how the world works (and, also, hard constraints are very challenging for sample-based probabilistic programming languages to handle). So, in the dynamic case, we accumulate log probability essentially according to the graph edit distance from the observed game play to the Nash equilibrium gameplay returned by backward induction. Observation of values also occurs according to typical <code>fmcs</code> syntax, e.g.,</p>
+      <div class="sourceCode" id="cb4"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>observe(r, <span class="st">&quot;decision&quot;</span>, DynamicGame(game), observed_play);</span></code></pre></div>
+      <p>where <code>observed_play</code> is a <a href="https://daviddewhurst.xyz/prob/lppl/docs/game__distributions_8hpp.html"><code>dynamic_play_t</code></a> type.</p>
+      <h1 id="can-you-do-anything-interesting">Can you do anything interesting?</h1>
+      <p>Maybe – depends on your definition. You can definitely do any of the things I described in the third paragraph of this piece. Here’s a very simple example. Suppose you think that two firms might engage in duopolistic competition to produce…stuff. There are a few factors at play, two of which might be the amount of productivity that a firm gets from scaling production up massively (learning!) and the amount of net drag (or gain) a government imposes on a firm via taxation or subsidy. We might observe only the firms’ decisions and not really know anything about the productivity gain experienced by one firm and might not believe statements made by one government (Red?) regarding subsidy or taxation imposed on a firm resident in it. That’s okay, because Probabilistic Programming Is Here To Help. To wit:</p>
+      <div class="sourceCode" id="cb5"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">template</span>&lt;<span class="dt">bool</span> Print&gt;</span>
+      <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="dt">double</span> profit_model(</span>
+      <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    <span class="dt">record_t</span>&lt;DTypes&lt;Gamma, Normal, DynamicGame&gt;&gt;&amp; r,</span>
+      <span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    <span class="dt">dynamic_play_t</span> observed_play</span>
+      <span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>) {</span>
+      <span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>    <span class="kw">auto</span> prod_high = sample(r, <span class="st">&quot;prod/high&quot;</span>, Gamma(<span class="fl">2.0</span>, <span class="fl">1.0</span>), rng);</span>
+      <span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>    <span class="kw">auto</span> prod_low = sample(r, <span class="st">&quot;prod/low&quot;</span>, Gamma(<span class="fl">2.0</span>, <span class="fl">1.0</span>), rng);</span>
+      <span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>    <span class="kw">auto</span> gov_lots = sample(r, <span class="st">&quot;gov/lots&quot;</span>, Normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>), rng);</span>
+      <span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a>    <span class="kw">auto</span> gov_little = sample(r, <span class="st">&quot;gov/little&quot;</span>, Normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>), rng);</span>
+      <span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a>    <span class="kw">auto</span> game = Node::decision(</span>
+      <span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a>        <span class="dv">0</span>, {<span class="st">&quot;high&quot;</span>, <span class="st">&quot;low&quot;</span>}, {</span>
+      <span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a>            Node::decision(</span>
+      <span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a>                <span class="dv">1</span>, {<span class="st">&quot;lots&quot;</span>, <span class="st">&quot;little&quot;</span>}, {</span>
+      <span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a>                    Node::terminal_node({prod_high, <span class="fl">1.0</span> - gov_lots}),</span>
+      <span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a>                    Node::terminal_node({prod_high * <span class="fl">0.75</span>, <span class="fl">0.25</span> - gov_little})</span>
+      <span id="cb5-16"><a href="#cb5-16" aria-hidden="true"></a>                }</span>
+      <span id="cb5-17"><a href="#cb5-17" aria-hidden="true"></a>            ),</span>
+      <span id="cb5-18"><a href="#cb5-18" aria-hidden="true"></a>            Node::decision(</span>
+      <span id="cb5-19"><a href="#cb5-19" aria-hidden="true"></a>                <span class="dv">1</span>, {<span class="st">&quot;lots&quot;</span>, <span class="st">&quot;little&quot;</span>}, {</span>
+      <span id="cb5-20"><a href="#cb5-20" aria-hidden="true"></a>                    Node::terminal_node({prod_low * <span class="fl">0.25</span>, <span class="fl">0.75</span> - gov_lots}),</span>
+      <span id="cb5-21"><a href="#cb5-21" aria-hidden="true"></a>                    Node::terminal_node({prod_low * <span class="fl">1.25</span>, <span class="fl">1.25</span> - gov_little})</span>
+      <span id="cb5-22"><a href="#cb5-22" aria-hidden="true"></a>                }</span>
+      <span id="cb5-23"><a href="#cb5-23" aria-hidden="true"></a>            )</span>
+      <span id="cb5-24"><a href="#cb5-24" aria-hidden="true"></a>        }</span>
+      <span id="cb5-25"><a href="#cb5-25" aria-hidden="true"></a>    );</span>
+      <span id="cb5-26"><a href="#cb5-26" aria-hidden="true"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> (Print) print_tree(game);</span>
+      <span id="cb5-27"><a href="#cb5-27" aria-hidden="true"></a>    observe(r, <span class="st">&quot;decision&quot;</span>, DynamicGame(game), observed_play);</span>
+      <span id="cb5-28"><a href="#cb5-28" aria-hidden="true"></a>    <span class="cf">return</span> (prod_high + prod_low) / <span class="fl">2.0</span>;</span>
+      <span id="cb5-29"><a href="#cb5-29" aria-hidden="true"></a>}</span></code></pre></div>
+      <p>The nice part – truly, without sarcasm – about being able to specify dynamics in this way is that it’s perfectly transparent and extensible. <em>Of course</em> this example is overly simplistic – that’s why you can (and should), for example, replace the <code>prod_high</code> call with a call to another probabilistic program that is a conditional probability distribution of how productivity increases in the case where production is high; or you should replace <code>{"lots", "little"}</code> by the result of a call to a depth-<span class="math inline"><em>N</em></span> <code>DynamicGame</code> that returns actual production values as a function of other strategic considerations; etc. Hopefully it is clear that all of the above is possible without any drama whatsoever.</p>
+      <p>Anyway, now you want to actually do the inference about which I bloviated. If you just want to see the game being played a little bit, you can do that:</p>
+      <div class="sourceCode" id="cb6"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="dt">dynamic_play_t</span> observed_play = {{<span class="dv">0</span>, <span class="st">&quot;low&quot;</span>}, {<span class="dv">1</span>, <span class="st">&quot;little&quot;</span>}};</span>
+      <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="dt">pp_t</span>&lt;<span class="dt">dynamic_play_t</span>, <span class="dt">double</span>, Gamma, Normal, DynamicGame&gt; f = profit_model&lt;<span class="kw">true</span>&gt;;</span>
+      <span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="kw">auto</span> q = weighted_record&lt;<span class="dt">double</span>, Gamma, Normal, DynamicGame&gt;();</span>
+      <span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a><span class="kw">auto</span> opts = <span class="dt">inf_options_t</span>(<span class="dv">3</span>);</span>
+      <span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a><span class="kw">auto</span> infer = inference&lt;LikelihoodWeighting&gt;(f, *q, opts);</span>
+      <span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a><span class="kw">auto</span> results = infer(observed_play);</span>
+      <span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a><span class="cf">for</span> (<span class="kw">auto</span>&amp; rec : results-&gt;_v) {</span>
+      <span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a>    <span class="bu">std::</span>cout &lt;&lt; display(rec) &lt;&lt; <span class="bu">std::</span>endl;</span></code></pre></div>
+      <p>which gets you the pleasant output</p>
+      <pre><code>(P0)
+          ├─ high ── (P1)
+          │   ├─ lots *─ * [ 0.0788621, 1.21228 ]
+          │   └─ little ── [ 0.0591466, -0.15832 ]
+          └─ low *─ (P1)
+              ├─ lots *─ * [ 0.316003, 0.962276 ]
+              └─ little ── [ 1.58002, 0.84168 ]
+      (P0)
+          ├─ high ── (P1)
+          │   ├─ lots *─ * [ 0.52571, 1.55959 ]
+          │   └─ little ── [ 0.394283, -0.0499256 ]
+          └─ low *─ (P1)
+              ├─ lots *─ * [ 0.625619, 1.30959 ]
+              └─ little ── [ 3.12809, 0.950074 ]
+      (P0)
+          ├─ high *─ (P1)
+          │   ├─ lots *─ * [ 0.890572, 3.31359 ]
+          │   └─ little ── [ 0.667929, 0.0311359 ]
+          └─ low ── (P1)
+              ├─ lots *─ * [ 0.542185, 3.06359 ]
+              └─ little ── [ 2.71093, 1.03114 ]
+      record_t(
+        address=prod/high, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=0.078862, logprob=-2.618917, obs=false)
+        address=prod/low, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=1.264014, logprob=-1.029722, obs=false)
+        address=gov/lots, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=-0.212276, logprob=-0.941469, obs=false)
+        address=gov/little, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=0.408320, logprob=-1.002301, obs=false)
+        address=decision, node=node_t(distribution=DynamicGame(...), value=[ (0, low) (1, little) ], logprob=-10.000000, obs=true)
+      )
+      record_t(
+        address=prod/high, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=0.525710, logprob=-1.168715, obs=false)
+        address=prod/low, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=2.502476, logprob=-1.585195, obs=false)
+        address=gov/lots, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=-0.559590, logprob=-1.075509, obs=false)
+        address=gov/little, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=0.299926, logprob=-0.963916, obs=false)
+        address=decision, node=node_t(distribution=DynamicGame(...), value=[ (0, low) (1, little) ], logprob=-10.000000, obs=true)
+      )
+      record_t(
+        address=prod/high, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=0.890572, logprob=-1.006463, obs=false)
+        address=prod/low, node=node_t(distribution=Gamma(k=2.000000, theta=1.000000), value=2.168741, logprob=-1.394594, obs=false)
+        address=gov/lots, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=-2.313588, logprob=-3.595283, obs=false)
+        address=gov/little, node=node_t(distribution=Normal(loc=0.000000, scale=1.000000), value=0.218864, logprob=-0.942889, obs=false)
+        address=decision, node=node_t(distribution=DynamicGame(...), value=[ (0, low) (1, little) ], logprob=-20.000000, obs=true)
+      )</code></pre>
+      <p>Of the three samples requested, we’re seeing first the games generated by each (formatted with the help of <a href="https://daviddewhurst.xyz/prob/lppl/docs/game__distributions_8hpp.html"><code>print_tree</code></a>) and then the full record corresponding to each run of the probabilistic program.</p>
+      <p>If you wanted to <em>actually</em> run inference you’d stop being so noisy and just get on with it:</p>
+      <div class="sourceCode" id="cb8"><pre class="sourceCode c++"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="co">// with real sampling</span></span>
+      <span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>f = profit_model&lt;<span class="kw">false</span>&gt;;</span>
+      <span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="co">// this is just to show We Can Do It -- the actual posterior will be</span></span>
+      <span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a><span class="co">// egregiouisly multimodal (since, in non-probabilistic treatment -- just consider as</span></span>
+      <span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a><span class="co">// linear algebra -- the problem is underconstrained with four parameters for a two-move,</span></span>
+      <span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a><span class="co">// two-player game)</span></span>
+      <span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a><span class="kw">auto</span> q2 = ProductGenerator&lt;WeightedMean, <span class="dt">double</span>, <span class="dt">double</span>, Gamma, Normal, DynamicGame&gt;::generate(</span>
+      <span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>    {<span class="st">&quot;prod/high&quot;</span>, <span class="st">&quot;prod/low&quot;</span>, <span class="st">&quot;gov/lots&quot;</span>, <span class="st">&quot;gov/little&quot;</span>}</span>
+      <span id="cb8-9"><a href="#cb8-9" aria-hidden="true"></a>);</span>
+      <span id="cb8-10"><a href="#cb8-10" aria-hidden="true"></a><span class="kw">auto</span> opts2 = <span class="dt">inf_options_t</span>(<span class="dv">1000</span>);</span>
+      <span id="cb8-11"><a href="#cb8-11" aria-hidden="true"></a><span class="kw">auto</span> infer2 = inference&lt;LikelihoodWeighting&gt;(f, q2, opts2);</span>
+      <span id="cb8-12"><a href="#cb8-12" aria-hidden="true"></a><span class="kw">auto</span> results2 = infer2(observed_play);</span>
+      <span id="cb8-13"><a href="#cb8-13" aria-hidden="true"></a><span class="cf">for</span> (<span class="at">const</span> <span class="kw">auto</span>&amp; [k, v] : results2.values) {</span>
+      <span id="cb8-14"><a href="#cb8-14" aria-hidden="true"></a>    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;E[&quot;</span> &lt;&lt; k &lt;&lt; <span class="st">&quot; | gameplay] = &quot;</span> &lt;&lt; v &lt;&lt; <span class="bu">std::</span>endl;</span>
+      <span id="cb8-15"><a href="#cb8-15" aria-hidden="true"></a>}</span></code></pre></div>
+      <p>which helpfully provides the requested means of the inferred marginals:</p>
+      <pre><code>E[prod/high | gameplay] = 1.44347
+      E[prod/low | gameplay] = 2.52908
+      E[gov/lots | gameplay] = 0.486267
+      E[gov/little | gameplay] = -0.35106</code></pre>
+      <p>This result intuitively makes sense – if we are <strong>ASSUMING</strong> that the players play a Nash eq strategy in pure strategies found by backward induction, then based on the non-probabilistic portion of the payoffs the government would have to subsidize player 1 a little bit and the productivity of player 0 producing a low amount would have to exceed the productivity of producing a high amount. And that’s what we find. Great.</p>
+      <h1 id="just-give-me-the-code">Just give me the code</h1>
+      <p>Sure: <a href="https://daviddewhurst.xyz/prob/lppl/source/lppl-vlatest.zip">code</a> (will attempt a download to your machine, and of a full git repo to boot – I no longer trust github, gitlab, bitbucket, etc., and you can’t have access to my private git repo); <a href="https://daviddewhurst.xyz/prob/lppl/docs/index.html">docs</a> on this website. Enjoy.</p>
+</div>
